@@ -1,0 +1,9 @@
+{
+	"compilerOptions": {
+		"sourceMap": true
+	},
+	"files" : [
+		"db.ts",
+		"server.ts"
+	]
+}

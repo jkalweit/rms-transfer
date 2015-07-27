@@ -1,0 +1,16 @@
+{
+  "name": "rms",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./server.js",
+  "dependencies": {
+    "body-parser": "^1.13.2",
+    "express": "^4.13.1",
+    "mongodb": "^2.0.39",
+    "socket.io": "^1.3.6"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "node server.js"
+  }
+}
