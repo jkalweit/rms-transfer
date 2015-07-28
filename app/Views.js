@@ -63,27 +63,42 @@ define(["require", "exports", 'react', 'jquery', 'socket.io', 'Models'], functio
         return BaseView;
     })(React.Component);
     exports.BaseView = BaseView;
+    var BaseItemView = (function (_super) {
+        __extends(BaseItemView, _super);
+        function BaseItemView(props) {
+            _super.call(this, props);
+            this.state = { entity: props.entity };
+        }
+        BaseItemView.prototype.componentWillReceiveProps = function (nextProps) {
+            this.setState({
+                entity: nextProps.entity
+            });
+        };
+        BaseItemView.prototype.update = function () {
+            var me = this;
+            this.props.onUpdate(this.state.entity);
+        };
+        BaseItemView.prototype.remove = function () {
+            this.props.onRemove(this.props.entity._id);
+        };
+        BaseItemView.prototype.handleChange = function (fieldName, event) {
+            var newEntity = this.state.entity;
+            newEntity[fieldName] = event.target.value;
+            this.setState({ entity: newEntity });
+        };
+        return BaseItemView;
+    })(React.Component);
+    exports.BaseItemView = BaseItemView;
     var InventoryItemView = (function (_super) {
         __extends(InventoryItemView, _super);
         function InventoryItemView() {
             _super.apply(this, arguments);
         }
-        InventoryItemView.prototype.update = function () {
-            var me = this;
-            var update = {
-                _id: this.props.entity._id,
-                name: React.findDOMNode(this.refs['name'])['value']
-            };
-            this.props.onUpdate(update);
-        };
-        InventoryItemView.prototype.remove = function () {
-            this.props.onRemove(this.props.entity._id);
-        };
         InventoryItemView.prototype.render = function () {
-            return (React.createElement("div", {"key": this.props.entity._id}, this.props.entity.name, React.createElement("input", {"ref": "name"}), React.createElement("button", {"onClick": this.update.bind(this)}, "Update"), React.createElement("button", {"onClick": this.remove.bind(this)}, "X")));
+            return (React.createElement("div", {"key": this.props.entity._id}, React.createElement("input", {"value": this.state.entity.name, "onChange": this.handleChange.bind(this, "name")}), React.createElement("input", {"value": this.state.entity.note, "onChange": this.handleChange.bind(this, "note")}), React.createElement("input", {"value": this.state.entity.count, "onChange": this.handleChange.bind(this, "count")}), React.createElement("button", {"onClick": this.update.bind(this)}, "Update"), React.createElement("button", {"onClick": this.remove.bind(this)}, "X")));
         };
         return InventoryItemView;
-    })(React.Component);
+    })(BaseItemView);
     exports.InventoryItemView = InventoryItemView;
     var InventoryView = (function (_super) {
         __extends(InventoryView, _super);
@@ -111,22 +126,11 @@ define(["require", "exports", 'react', 'jquery', 'socket.io', 'Models'], functio
         function VendorDetailsView() {
             _super.apply(this, arguments);
         }
-        VendorDetailsView.prototype.update = function () {
-            var me = this;
-            var update = {
-                _id: this.props.entity._id,
-                name: React.findDOMNode(this.refs['name'])['value']
-            };
-            this.props.onUpdate(update);
-        };
-        VendorDetailsView.prototype.remove = function () {
-            this.props.onRemove(this.props.entity._id);
-        };
         VendorDetailsView.prototype.render = function () {
-            return (React.createElement("div", {"key": this.props.entity._id}, this.props.entity.name, React.createElement("input", {"ref": "name"}), React.createElement("button", {"onClick": this.update.bind(this)}, "Update"), React.createElement("button", {"onClick": this.remove.bind(this)}, "X")));
+            return (React.createElement("div", {"key": this.props.entity._id}, React.createElement("input", {"value": this.state.entity.name, "onChange": this.handleChange.bind(this, "name")}), React.createElement("input", {"value": this.state.entity.note, "onChange": this.handleChange.bind(this, "note")}), React.createElement("button", {"onClick": this.update.bind(this)}, "Update"), React.createElement("button", {"onClick": this.remove.bind(this)}, "X")));
         };
         return VendorDetailsView;
-    })(React.Component);
+    })(BaseItemView);
     exports.VendorDetailsView = VendorDetailsView;
     var VendorView = (function (_super) {
         __extends(VendorView, _super);

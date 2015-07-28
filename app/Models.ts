@@ -1,11 +1,12 @@
 export class DbObjectModel {
     _id: string;
+    lastModified: Date;
     static collectionName: string;
 }
 
-
 export class InventoryItemModel implements DbObjectModel {
     _id: string
+    lastModified: Date;
     name: string;
     note: string;
     count: number;
@@ -14,6 +15,7 @@ export class InventoryItemModel implements DbObjectModel {
 
 export class VendorModel implements DbObjectModel {
     _id: string
+    lastModified: Date;
     name: string;
     note: string;
     static collectionName: string = 'vendors';

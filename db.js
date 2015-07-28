@@ -47,7 +47,12 @@ function patch(collection, item, callback) {
         }
         var _id = new ObjectId(item._id);
         delete item._id;
-        items.update({ "_id": _id }, { "$set": item }, function (error, result) {
+        items.update({ "_id": _id }, {
+            "$set": item,
+            "$currentDate": {
+                lastModified: true
+            }
+        }, function (error, result) {
             if (error) {
                 console.error(error);
                 return;

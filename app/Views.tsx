@@ -21,13 +21,13 @@ export class BaseItemViewProps {
 
 
 
-
 export class BaseView<T, P, S> extends React.Component<P, any> {
     private collectionName: string;
     constructor(props, collectionName: string) {
         super(props);
         this.collectionName = collectionName;
         this.state = { data: [] };
+
         socket.on('updated', function(data) {
             console.log('Updated: ' + collectionName + ' ' + data);
             this.refresh();
@@ -51,7 +51,7 @@ export class BaseView<T, P, S> extends React.Component<P, any> {
     update(data) {
         var me = this;
         $.ajax({
-            url: '/api/'  + this.collectionName + '/' + data._id,
+            url: '/api/' + this.collectionName + '/' + data._id,
             type: 'PATCH',
             data: data,
             success: function(result) {
@@ -72,24 +72,42 @@ export class BaseView<T, P, S> extends React.Component<P, any> {
 }
 
 
-
-
-export class InventoryItemView extends React.Component<BaseItemViewProps, any> {
+export class BaseItemView<P extends BaseItemViewProps, S> extends React.Component<P, any> {
+    private collectionName: string;
+    constructor(props) {
+        super(props);
+        this.state = { entity: props.entity };
+    }
+    componentWillReceiveProps(nextProps) {
+      this.setState({
+        entity: nextProps.entity
+      });
+    }
     update() {
         var me = this;
-        var update = {
-            _id: this.props.entity._id,
-            name: React.findDOMNode(this.refs['name'])['value']
-        };
-        this.props.onUpdate(update);
+        this.props.onUpdate(this.state.entity);
     }
     remove() {
         this.props.onRemove(this.props.entity._id);
     }
+    handleChange(fieldName, event) {
+        var newEntity = this.state.entity;
+        newEntity[fieldName] = event.target.value;
+        this.setState({ entity: newEntity });
+    }
+}
+
+
+
+
+
+export class InventoryItemView extends BaseItemView<BaseItemViewProps, any> {
     render() {
         return (
             <div key={this.props.entity._id}>
-            {this.props.entity.name} <input ref="name" />
+              <input value={ this.state.entity.name } onChange={ this.handleChange.bind(this, "name") } />
+              <input value={ this.state.entity.note } onChange={ this.handleChange.bind(this, "note") } />
+              <input value={ this.state.entity.count } onChange={ this.handleChange.bind(this, "count") } />
               <button onClick={this.update.bind(this) }>Update</button>
               <button onClick={this.remove.bind(this) }>X</button>
             </div>
@@ -132,30 +150,18 @@ export class InventoryView extends BaseView<models.InventoryItemModel, {}, any> 
 
 
 
-
-export class VendorDetailsView extends React.Component<BaseItemViewProps, any> {
-    update() {
-        var me = this;
-        var update = {
-            _id: this.props.entity._id,
-            name: React.findDOMNode(this.refs['name'])['value']
-        };
-        this.props.onUpdate(update);
-    }
-    remove() {
-        this.props.onRemove(this.props.entity._id);
-    }
+export class VendorDetailsView extends BaseItemView<BaseItemViewProps, any> {
     render() {
         return (
-            <div key={this.props.entity._id}>
-            {this.props.entity.name} <input ref="name" />
-              <button onClick={this.update.bind(this) }>Update</button>
-              <button onClick={this.remove.bind(this) }>X</button>
-            </div>
+          <div key={this.props.entity._id}>
+            <input value={ this.state.entity.name } onChange={ this.handleChange.bind(this, "name") } />
+            <input value={ this.state.entity.note } onChange={ this.handleChange.bind(this, "note") } />
+            <button onClick={this.update.bind(this) }>Update</button>
+            <button onClick={this.remove.bind(this) }>X</button>
+          </div>
         );
     }
 }
-
 
 
 export class VendorView extends BaseView<models.VendorModel, {}, any> {
@@ -184,74 +190,3 @@ export class VendorView extends BaseView<models.VendorModel, {}, any> {
         );
     }
 }
-
-
-/*
-export class InventoryView extends React.Component<{}, any> {
-    constructor(props) {
-        super(props);
-        this.state = { data: [] };
-        var socket = io();
-        socket.on('updated', function(data) {
-            console.log('Updated: ' + data);
-            this.refresh();
-        }.bind(this));
-    }
-    componentDidMount() {
-        this.refresh();
-    }
-    refresh() {
-        var me = this;
-        //$.getJSON(InventoryItemModel.apiPath, function(result) {
-        $.getJSON('/api/' + models.InventoryItemModel.collectionName, function(result) {
-            me.setState({ data: result });
-        });
-    }
-    insert() {
-        var me = this;
-        var item = {
-            name: React.findDOMNode(this.refs['name'])['value'],
-            note: "",
-            count: 0
-        };
-        $.post('/api/' + models.InventoryItemModel.collectionName, item, function(result) {
-            me.refresh();
-        });
-    }
-    update(data) {
-        var me = this;
-        $.ajax({
-            url: '/api/'  + models.InventoryItemModel.collectionName + '/' + data._id,
-            type: 'PATCH',
-            data: data,
-            success: function(result) {
-                me.refresh();
-            }
-        });
-    }
-    remove(id) {
-        var me = this;
-        $.ajax({
-            url: '/api/' + models.InventoryItemModel.collectionName + '/' + id,
-            type: 'DELETE',
-            success: function(result) {
-                me.refresh();
-            }
-        });
-    }
-    render() {
-        var nodes = this.state.data.map(function(entity) {
-            return (
-                <InventoryItemView key={entity._id} entity={entity} onUpdate={this.update.bind(this) } onRemove={this.remove.bind(this) }></InventoryItemView>
-            );
-        }.bind(this));
-        return (
-            <div>
-              <h1>Inventory</h1>
-              <input ref="name" />
-              <button onClick={this.insert.bind(this) }>Add</button>
-              {nodes}
-            </div>
-        );
-    }
-}*/
