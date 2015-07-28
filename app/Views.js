@@ -18,12 +18,18 @@ define(["require", "exports", 'react', 'jquery', 'socket.io', 'moment', 'Models'
         function BaseView(props, collectionName) {
             _super.call(this, props);
             this.collectionName = collectionName;
-            this.state = { data: [] };
+            this.state = {
+                data: [],
+                isDisabled: false
+            };
             socket.on('updated:' + this.collectionName, function (data) {
                 console.log('Updated: ' + collectionName);
                 this.refresh();
             }.bind(this));
         }
+        BaseView.prototype.toggleIsDisabled = function () {
+            this.setState({ isDisabled: !this.state.isDisabled });
+        };
         BaseView.prototype.componentDidMount = function () {
             this.refresh();
         };
@@ -69,9 +75,13 @@ define(["require", "exports", 'react', 'jquery', 'socket.io', 'moment', 'Models'
             _super.call(this, props);
             this.state = {
                 entity: props.entity,
-                isDirty: false
+                isDirty: false,
+                isDisabled: false
             };
         }
+        BaseItemView.prototype.toggleIsDisabled = function () {
+            this.setState({ isDisabled: !this.state.isDisabled });
+        };
         BaseItemView.prototype.componentWillReceiveProps = function (nextProps) {
             this.setState({
                 entity: nextProps.entity,
@@ -106,7 +116,7 @@ define(["require", "exports", 'react', 'jquery', 'socket.io', 'moment', 'Models'
             _super.apply(this, arguments);
         }
         InventoryItemView.prototype.render = function () {
-            return (React.createElement("div", {"key": this.props.entity._id}, React.createElement("input", {"value": this.state.entity.name, "onChange": this.handleChange.bind(this, "name")}), React.createElement("input", {"value": this.state.entity.note, "onChange": this.handleChange.bind(this, "note")}), React.createElement("input", {"value": this.state.entity.count, "onChange": this.handleChange.bind(this, "count")}), React.createElement("button", {"onClick": this.update.bind(this), "disabled": !this.state.isDirty}, "Update"), React.createElement("button", {"onClick": this.remove.bind(this)}, "X"), moment(this.state.entity.lastModified).format('llll')));
+            return (React.createElement("div", {"key": this.props.entity._id}, React.createElement("select", {"value": this.state.entity.location, "onChange": this.handleChange.bind(this, "location")}, React.createElement("option", null), React.createElement("option", null, "Dry Storage"), React.createElement("option", null, "Silver Fridge"), React.createElement("option", null, "Freezer 1"), React.createElement("option", null, "Freezer 2")), React.createElement("select", {"value": this.state.entity.type, "onChange": this.handleChange.bind(this, "type")}, React.createElement("option", null), React.createElement("option", null, "App"), React.createElement("option", null, "Bread"), React.createElement("option", null, "Drinks"), React.createElement("option", null, "Dry Goods"), React.createElement("option", null, "Meat"), React.createElement("option", null, "Produce"), React.createElement("option", null, "Sauce"), React.createElement("option", null, "Supplies")), React.createElement("input", {"value": this.state.entity.name, "onChange": this.handleChange.bind(this, "name")}), React.createElement("input", {"value": this.state.entity.note, "onChange": this.handleChange.bind(this, "note")}), React.createElement("input", {"value": this.state.entity.count, "onChange": this.handleChange.bind(this, "count")}), React.createElement("button", {"onClick": this.update.bind(this), "disabled": !this.state.isDirty}, "Update"), React.createElement("button", {"onClick": this.remove.bind(this)}, "X"), moment(this.state.entity.lastModified).format('llll')));
         };
         return InventoryItemView;
     })(BaseItemView);
@@ -115,6 +125,7 @@ define(["require", "exports", 'react', 'jquery', 'socket.io', 'moment', 'Models'
         __extends(InventoryView, _super);
         function InventoryView(props) {
             _super.call(this, props, models.InventoryItemModel.collectionName);
+            this.state.isDisabled = true;
         }
         InventoryView.prototype.insert = function () {
             this.insertBase({
@@ -127,7 +138,10 @@ define(["require", "exports", 'react', 'jquery', 'socket.io', 'moment', 'Models'
             var nodes = this.state.data.map(function (entity) {
                 return (React.createElement(InventoryItemView, {"key": entity._id, "entity": entity, "onUpdate": this.update.bind(this), "onRemove": this.remove.bind(this)}));
             }.bind(this));
-            return (React.createElement("div", null, React.createElement("h2", null, "Inventory"), React.createElement("input", {"ref": "name"}), React.createElement("button", {"onClick": this.insert.bind(this)}, "Add"), nodes));
+            var style = {
+                display: this.state.isDisabled ? 'none' : 'block'
+            };
+            return (React.createElement("div", null, React.createElement("div", {"onClick": this.toggleIsDisabled.bind(this)}, React.createElement("h2", null, "Inventory")), React.createElement("div", {"style": style}, React.createElement("input", {"ref": "name"}), React.createElement("button", {"onClick": this.insert.bind(this)}, "Add"), nodes)));
         };
         return InventoryView;
     })(BaseView);
@@ -147,6 +161,7 @@ define(["require", "exports", 'react', 'jquery', 'socket.io', 'moment', 'Models'
         __extends(VendorsView, _super);
         function VendorsView(props) {
             _super.call(this, props, models.VendorModel.collectionName);
+            this.state.isDisabled = true;
         }
         VendorsView.prototype.insert = function () {
             this.insertBase({
@@ -158,7 +173,10 @@ define(["require", "exports", 'react', 'jquery', 'socket.io', 'moment', 'Models'
             var nodes = this.state.data.map(function (entity) {
                 return (React.createElement(VendorDetailsView, {"key": entity._id, "entity": entity, "onUpdate": this.update.bind(this), "onRemove": this.remove.bind(this)}));
             }.bind(this));
-            return (React.createElement("div", null, React.createElement("h2", null, "Vendors"), React.createElement("input", {"ref": "name"}), React.createElement("button", {"onClick": this.insert.bind(this)}, "Add"), nodes));
+            var style = {
+                display: this.state.isDisabled ? 'none' : 'block'
+            };
+            return (React.createElement("div", null, React.createElement("div", {"onClick": this.toggleIsDisabled.bind(this)}, React.createElement("h2", null, "Vendors")), React.createElement("div", {"style": style}, React.createElement("input", {"ref": "name"}), React.createElement("button", {"onClick": this.insert.bind(this)}, "Add"), nodes)));
         };
         return VendorsView;
     })(BaseView);
@@ -177,7 +195,10 @@ define(["require", "exports", 'react', 'jquery', 'socket.io', 'moment', 'Models'
             var nodes = this.state.data.map(function (entity) {
                 return (React.createElement(ShiftDetailsView, {"key": entity._id, "entity": entity, "onUpdate": this.update.bind(this), "onRemove": this.remove.bind(this)}));
             }.bind(this));
-            return (React.createElement("div", null, React.createElement("h2", null, "Shifts"), React.createElement("input", {"ref": "date", "type": "date"}), React.createElement("button", {"onClick": this.insert.bind(this)}, "Add"), nodes));
+            var style = {
+                display: this.state.isDisabled ? 'none' : 'block'
+            };
+            return (React.createElement("div", null, React.createElement("div", {"onClick": this.toggleIsDisabled.bind(this)}, React.createElement("h2", null, "Shifts")), React.createElement("div", {"style": style}, React.createElement("input", {"ref": "date", "type": "date"}), React.createElement("button", {"onClick": this.insert.bind(this)}, "Add"), nodes)));
         };
         return ShiftsView;
     })(BaseView);

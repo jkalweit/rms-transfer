@@ -26,12 +26,18 @@ export class BaseView<T, P, S> extends React.Component<P, any> {
     constructor(props, collectionName: string) {
         super(props);
         this.collectionName = collectionName;
-        this.state = { data: [] };
+        this.state = {
+          data: [],
+          isDisabled: false
+        };
 
         socket.on('updated:' + this.collectionName, function(data) {
             console.log('Updated: ' + collectionName);
             this.refresh();
         }.bind(this));
+    }
+    toggleIsDisabled() {
+      this.setState({ isDisabled: !this.state.isDisabled });
     }
     componentDidMount() {
         this.refresh();
@@ -78,8 +84,12 @@ export class BaseItemView<P extends BaseItemViewProps, S> extends React.Componen
         super(props);
         this.state = {
             entity: props.entity,
-            isDirty: false
+            isDirty: false,
+            isDisabled: false
         };
+    }
+    toggleIsDisabled() {
+      this.setState({ isDisabled: !this.state.isDisabled });
     }
     componentWillReceiveProps(nextProps) {
         this.setState({
@@ -116,6 +126,24 @@ export class InventoryItemView extends BaseItemView<BaseItemViewProps, any> {
     render() {
         return (
             <div key={this.props.entity._id}>
+            <select value={this.state.entity.location} onChange={ this.handleChange.bind(this, "location") } >
+                    <option></option>
+                    <option>Dry Storage</option>
+                    <option>Silver Fridge</option>
+                    <option>Freezer 1</option>
+                    <option>Freezer 2</option>
+            </select>
+                <select value={this.state.entity.type} onChange={ this.handleChange.bind(this, "type") } >
+                    <option></option>
+                    <option>App</option>
+                    <option>Bread</option>
+                    <option>Drinks</option>
+                    <option>Dry Goods</option>
+                    <option>Meat</option>
+                    <option>Produce</option>
+                    <option>Sauce</option>
+                    <option>Supplies</option>
+                </select>
               <input value={ this.state.entity.name } onChange={ this.handleChange.bind(this, "name") } />
               <input value={ this.state.entity.note } onChange={ this.handleChange.bind(this, "note") } />
               <input value={ this.state.entity.count } onChange={ this.handleChange.bind(this, "count") } />
@@ -131,6 +159,7 @@ export class InventoryItemView extends BaseItemView<BaseItemViewProps, any> {
 export class InventoryView extends BaseView<models.InventoryItemModel, {}, any> {
     constructor(props) {
         super(props, models.InventoryItemModel.collectionName);
+        this.state.isDisabled = true;
     }
     insert() {
         this.insertBase({
@@ -145,12 +174,21 @@ export class InventoryView extends BaseView<models.InventoryItemModel, {}, any> 
                 <InventoryItemView key={entity._id} entity={entity} onUpdate={this.update.bind(this) } onRemove={this.remove.bind(this) }></InventoryItemView>
             );
         }.bind(this));
+
+        var style = {
+          display: this.state.isDisabled ? 'none' : 'block'
+        };
+
         return (
             <div>
-              <h2>Inventory</h2>
-              <input ref="name" />
-              <button onClick={this.insert.bind(this) }>Add</button>
-              {nodes}
+              <div onClick={ this.toggleIsDisabled.bind(this) }>
+                <h2>Inventory</h2>
+              </div>
+              <div style={style}>
+                <input ref="name" />
+                <button onClick={this.insert.bind(this) }>Add</button>
+                {nodes}
+              </div>
             </div>
         );
     }
@@ -178,6 +216,7 @@ export class VendorDetailsView extends BaseItemView<BaseItemViewProps, any> {
 export class VendorsView extends BaseView<models.VendorModel, {}, any> {
     constructor(props) {
         super(props, models.VendorModel.collectionName);
+        this.state.isDisabled = true;
     }
     insert() {
         this.insertBase({
@@ -191,12 +230,21 @@ export class VendorsView extends BaseView<models.VendorModel, {}, any> {
                 <VendorDetailsView key={entity._id} entity={entity} onUpdate={this.update.bind(this) } onRemove={this.remove.bind(this) }></VendorDetailsView>
             );
         }.bind(this));
+
+        var style = {
+          display: this.state.isDisabled ? 'none' : 'block'
+        };
+
         return (
             <div>
-              <h2>Vendors</h2>
-              <input ref="name" />
-              <button onClick={this.insert.bind(this) }>Add</button>
-              {nodes}
+              <div onClick={ this.toggleIsDisabled.bind(this) }>
+                <h2>Vendors</h2>
+              </div>
+              <div style={style}>
+                <input ref="name" />
+                <button onClick={this.insert.bind(this) }>Add</button>
+                {nodes}
+              </div>
             </div>
         );
     }
@@ -222,12 +270,21 @@ export class ShiftsView extends BaseView<models.ShiftModel, {}, any> {
                 <ShiftDetailsView key={entity._id} entity={entity} onUpdate={this.update.bind(this) } onRemove={this.remove.bind(this) }></ShiftDetailsView>
             );
         }.bind(this));
+
+        var style = {
+          display: this.state.isDisabled ? 'none' : 'block'
+        };
+
         return (
             <div>
-              <h2>Shifts</h2>
-              <input ref="date" type="date" />
-              <button onClick={this.insert.bind(this) }>Add</button>
-              {nodes}
+              <div onClick={ this.toggleIsDisabled.bind(this) }>
+                <h2>Shifts</h2>
+              </div>
+              <div style={style}>
+                <input ref="date" type="date" />
+                <button onClick={this.insert.bind(this) }>Add</button>
+                {nodes}
+              </div>
             </div>
         );
     }
