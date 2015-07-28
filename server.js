@@ -1,10 +1,11 @@
 /// <reference path='./typings/tsd.d.ts' />
+require('amdefine/intercept');
 var express = require('express');
 var Mongo = require('mongodb');
 var bodyParser = require('body-parser');
 var http = require('http');
 var socketio = require('socket.io');
-var path = require("path");
+var path = require('path');
 var db = require('./db');
 var models = require('./app/models');
 var MongoClient = Mongo.MongoClient;
@@ -21,39 +22,41 @@ io.on('connection', function (socket) {
 });
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
-var api = express.Router();
-api.route('/items')
-    .get(function (req, res, next) {
-    db.get(models.InventoryItemModel.collectionName, {}, function (result) {
-        res.send(result);
-    });
-})
-    .post(function (req, res, next) {
-    db.insert(models.InventoryItemModel.collectionName, req.body, function (result) {
-        io.emit('updated');
-        res.send(result);
-    });
-});
-api.route('/items/:id')
-    .get(function (req, res, next) {
-    db.getById(models.InventoryItemModel.collectionName, req.params.id, function (result) {
-        res.send(result);
-    });
-})
-    .patch(function (req, res, next) {
-    db.patch(models.InventoryItemModel.collectionName, req.body, function (result) {
-        io.emit('updated');
-        res.send(result);
-    });
-}).delete(function (req, res, next) {
-    if (req.body.id) {
-        db.remove(models.InventoryItemModel.collectionName, req.params.id, function (result) {
+function buildREST(collectionName) {
+    var api = express.Router();
+    api.route('/' + collectionName)
+        .get(function (req, res, next) {
+        db.get(collectionName, {}, function (result) {
+            res.send(result);
+        });
+    })
+        .post(function (req, res, next) {
+        db.insert(collectionName, req.body, function (result) {
             io.emit('updated');
             res.send(result);
         });
-    }
-});
-app.use('/api', api);
+    });
+    api.route('/' + collectionName + '/:id')
+        .get(function (req, res, next) {
+        db.getById(collectionName, req.params.id, function (result) {
+            res.send(result);
+        });
+    })
+        .patch(function (req, res, next) {
+        db.patch(collectionName, req.body, function (result) {
+            io.emit('updated');
+            res.send(result);
+        });
+    }).delete(function (req, res, next) {
+        db.remove(collectionName, req.params.id, function (result) {
+            io.emit('updated');
+            res.send(result);
+        });
+    });
+    app.use('/api', api);
+}
+buildREST(models.InventoryItemModel.collectionName);
+buildREST(models.VendorModel.collectionName);
 app.get('/', function (req, res) {
     res.sendFile(path.join(__dirname, './index.html'));
 });

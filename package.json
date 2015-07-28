@@ -4,6 +4,7 @@
   "description": "",
   "main": "./server.js",
   "dependencies": {
+    "amdefine": "^1.0.0",
     "body-parser": "^1.13.2",
     "express": "^4.13.1",
     "mongodb": "^2.0.39",

@@ -20,12 +20,6 @@
     "express/express.d.ts": {
       "commit": "f6c8ca47193fb67947944a3170912672ac3e908e"
     },
-    "react/react-addons-global.d.ts": {
-      "commit": "f6c8ca47193fb67947944a3170912672ac3e908e"
-    },
-    "react/react-global.d.ts": {
-      "commit": "f6c8ca47193fb67947944a3170912672ac3e908e"
-    },
     "mongodb/mongodb.d.ts": {
       "commit": "f6c8ca47193fb67947944a3170912672ac3e908e"
     },

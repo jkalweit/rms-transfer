@@ -9,9 +9,15 @@ define(["require", "exports"], function (require, exports) {
         function InventoryItemModel() {
         }
         InventoryItemModel.collectionName = 'inventory_items';
-        InventoryItemModel.apiPath = '/api/items/';
         return InventoryItemModel;
     })();
     exports.InventoryItemModel = InventoryItemModel;
+    var VendorModel = (function () {
+        function VendorModel() {
+        }
+        VendorModel.collectionName = 'vendors';
+        return VendorModel;
+    })();
+    exports.VendorModel = VendorModel;
 });
 //# sourceMappingURL=Models.js.map

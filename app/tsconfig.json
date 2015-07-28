@@ -7,6 +7,6 @@
 	},
 	"files" : [
 		"Models.ts",
-		"Inventory.tsx"
+		"Views.tsx"
 	]
 }

@@ -6,6 +6,6 @@ require.config({
   }
 });
 
-require(['require', 'exports', 'react', 'inventory'], function (require, exports, React, inventory) {
-  React.render(React.createElement(inventory.Inventory, null), document.getElementById('content'));
+require(['require', 'exports', 'react', 'views'], function (require, exports, React, views) {
+  React.render(React.createElement(views.InventoryView, null), document.getElementById('content'));
 });
