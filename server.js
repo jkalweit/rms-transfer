@@ -21,7 +21,7 @@ io.on('connection', function (socket) {
     });
 });
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded());
+app.use(bodyParser.urlencoded({ extended: true }));
 function buildREST(collectionName) {
     var api = express.Router();
     api.route('/' + collectionName)

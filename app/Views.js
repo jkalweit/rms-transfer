@@ -79,7 +79,9 @@ define(["require", "exports", 'react', 'jquery', 'socket.io', 'Models'], functio
             this.props.onUpdate(this.state.entity);
         };
         BaseItemView.prototype.remove = function () {
-            this.props.onRemove(this.props.entity._id);
+            if (confirm('Delete?')) {
+                this.props.onRemove(this.props.entity._id);
+            }
         };
         BaseItemView.prototype.handleChange = function (fieldName, event) {
             var newEntity = this.state.entity;
@@ -116,7 +118,7 @@ define(["require", "exports", 'react', 'jquery', 'socket.io', 'Models'], functio
             var nodes = this.state.data.map(function (entity) {
                 return (React.createElement(InventoryItemView, {"key": entity._id, "entity": entity, "onUpdate": this.update.bind(this), "onRemove": this.remove.bind(this)}));
             }.bind(this));
-            return (React.createElement("div", null, React.createElement("h1", null, "Inventory"), React.createElement("input", {"ref": "name"}), React.createElement("button", {"onClick": this.insert.bind(this)}, "Add"), nodes, React.createElement(VendorView, null)));
+            return (React.createElement("div", null, React.createElement("h2", null, "Inventory"), React.createElement("input", {"ref": "name"}), React.createElement("button", {"onClick": this.insert.bind(this)}, "Add"), nodes));
         };
         return InventoryView;
     })(BaseView);
@@ -147,10 +149,21 @@ define(["require", "exports", 'react', 'jquery', 'socket.io', 'Models'], functio
             var nodes = this.state.data.map(function (entity) {
                 return (React.createElement(VendorDetailsView, {"key": entity._id, "entity": entity, "onUpdate": this.update.bind(this), "onRemove": this.remove.bind(this)}));
             }.bind(this));
-            return (React.createElement("div", null, React.createElement("h1", null, "Vendors"), React.createElement("input", {"ref": "name"}), React.createElement("button", {"onClick": this.insert.bind(this)}, "Add"), nodes));
+            return (React.createElement("div", null, React.createElement("h2", null, "Vendors"), React.createElement("input", {"ref": "name"}), React.createElement("button", {"onClick": this.insert.bind(this)}, "Add"), nodes));
         };
         return VendorView;
     })(BaseView);
     exports.VendorView = VendorView;
+    var MainView = (function (_super) {
+        __extends(MainView, _super);
+        function MainView() {
+            _super.apply(this, arguments);
+        }
+        MainView.prototype.render = function () {
+            return (React.createElement("div", null, React.createElement("h1", null, "RMS"), React.createElement(InventoryView, null), React.createElement(VendorView, null)));
+        };
+        return MainView;
+    })(React.Component);
+    exports.MainView = MainView;
 });
 //# sourceMappingURL=Views.js.map

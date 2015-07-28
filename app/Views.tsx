@@ -79,16 +79,18 @@ export class BaseItemView<P extends BaseItemViewProps, S> extends React.Componen
         this.state = { entity: props.entity };
     }
     componentWillReceiveProps(nextProps) {
-      this.setState({
-        entity: nextProps.entity
-      });
+        this.setState({
+            entity: nextProps.entity
+        });
     }
     update() {
         var me = this;
         this.props.onUpdate(this.state.entity);
     }
     remove() {
-        this.props.onRemove(this.props.entity._id);
+        if (confirm('Delete?')) {
+            this.props.onRemove(this.props.entity._id);
+        }
     }
     handleChange(fieldName, event) {
         var newEntity = this.state.entity;
@@ -135,11 +137,10 @@ export class InventoryView extends BaseView<models.InventoryItemModel, {}, any> 
         }.bind(this));
         return (
             <div>
-              <h1>Inventory</h1>
+              <h2>Inventory</h2>
               <input ref="name" />
               <button onClick={this.insert.bind(this) }>Add</button>
               {nodes}
-              <VendorView></VendorView>
             </div>
         );
     }
@@ -153,12 +154,12 @@ export class InventoryView extends BaseView<models.InventoryItemModel, {}, any> 
 export class VendorDetailsView extends BaseItemView<BaseItemViewProps, any> {
     render() {
         return (
-          <div key={this.props.entity._id}>
+            <div key={this.props.entity._id}>
             <input value={ this.state.entity.name } onChange={ this.handleChange.bind(this, "name") } />
             <input value={ this.state.entity.note } onChange={ this.handleChange.bind(this, "note") } />
             <button onClick={this.update.bind(this) }>Update</button>
             <button onClick={this.remove.bind(this) }>X</button>
-          </div>
+            </div>
         );
     }
 }
@@ -182,10 +183,26 @@ export class VendorView extends BaseView<models.VendorModel, {}, any> {
         }.bind(this));
         return (
             <div>
-              <h1>Vendors</h1>
+              <h2>Vendors</h2>
               <input ref="name" />
               <button onClick={this.insert.bind(this) }>Add</button>
               {nodes}
+            </div>
+        );
+    }
+}
+
+
+
+
+
+export class MainView extends React.Component<{}, any> {
+    render() {
+        return (
+            <div>
+          <h1>RMS</h1>
+          <InventoryView></InventoryView>
+          <VendorView></VendorView>
             </div>
         );
     }

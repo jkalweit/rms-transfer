@@ -7,5 +7,5 @@ require.config({
 });
 
 require(['require', 'exports', 'react', 'views'], function (require, exports, React, views) {
-  React.render(React.createElement(views.InventoryView, null), document.getElementById('content'));
+  React.render(React.createElement(views.MainView, null), document.getElementById('content'));
 });
