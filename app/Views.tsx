@@ -1,10 +1,10 @@
-
 /// <reference path="../typings/tsd.d.ts" />
 /// <reference path="./Models.ts" />
 
 import React = require('react');
 import $ = require('jquery');
 import io = require('socket.io');
+import moment = require('moment');
 import models = require('Models');
 
 
@@ -28,8 +28,8 @@ export class BaseView<T, P, S> extends React.Component<P, any> {
         this.collectionName = collectionName;
         this.state = { data: [] };
 
-        socket.on('updated', function(data) {
-            console.log('Updated: ' + collectionName + ' ' + data);
+        socket.on('updated:' + this.collectionName, function(data) {
+            console.log('Updated: ' + collectionName);
             this.refresh();
         }.bind(this));
     }
@@ -76,11 +76,15 @@ export class BaseItemView<P extends BaseItemViewProps, S> extends React.Componen
     private collectionName: string;
     constructor(props) {
         super(props);
-        this.state = { entity: props.entity };
+        this.state = {
+            entity: props.entity,
+            isDirty: false
+        };
     }
     componentWillReceiveProps(nextProps) {
         this.setState({
-            entity: nextProps.entity
+            entity: nextProps.entity,
+            isDirty: false
         });
     }
     update() {
@@ -94,8 +98,13 @@ export class BaseItemView<P extends BaseItemViewProps, S> extends React.Componen
     }
     handleChange(fieldName, event) {
         var newEntity = this.state.entity;
-        newEntity[fieldName] = event.target.value;
-        this.setState({ entity: newEntity });
+        if (newEntity[fieldName] !== event.target.value) {
+            newEntity[fieldName] = event.target.value;
+            this.setState({
+                entity: newEntity,
+                isDirty: true
+            });
+        }
     }
 }
 
@@ -110,8 +119,9 @@ export class InventoryItemView extends BaseItemView<BaseItemViewProps, any> {
               <input value={ this.state.entity.name } onChange={ this.handleChange.bind(this, "name") } />
               <input value={ this.state.entity.note } onChange={ this.handleChange.bind(this, "note") } />
               <input value={ this.state.entity.count } onChange={ this.handleChange.bind(this, "count") } />
-              <button onClick={this.update.bind(this) }>Update</button>
+              <button onClick={this.update.bind(this) } disabled={!this.state.isDirty}>Update</button>
               <button onClick={this.remove.bind(this) }>X</button>
+              { moment(this.state.entity.lastModified).format('llll') }
             </div>
         );
     }
@@ -157,7 +167,7 @@ export class VendorDetailsView extends BaseItemView<BaseItemViewProps, any> {
             <div key={this.props.entity._id}>
             <input value={ this.state.entity.name } onChange={ this.handleChange.bind(this, "name") } />
             <input value={ this.state.entity.note } onChange={ this.handleChange.bind(this, "note") } />
-            <button onClick={this.update.bind(this) }>Update</button>
+            <button onClick={this.update.bind(this) } disabled={!this.state.isDirty}>Update</button>
             <button onClick={this.remove.bind(this) }>X</button>
             </div>
         );
@@ -165,7 +175,7 @@ export class VendorDetailsView extends BaseItemView<BaseItemViewProps, any> {
 }
 
 
-export class VendorView extends BaseView<models.VendorModel, {}, any> {
+export class VendorsView extends BaseView<models.VendorModel, {}, any> {
     constructor(props) {
         super(props, models.VendorModel.collectionName);
     }
@@ -196,13 +206,133 @@ export class VendorView extends BaseView<models.VendorModel, {}, any> {
 
 
 
+
+export class ShiftsView extends BaseView<models.ShiftModel, {}, any> {
+    constructor(props) {
+        super(props, models.ShiftModel.collectionName);
+    }
+    insert() {
+        this.insertBase({
+            date: React.findDOMNode(this.refs['date'])['value'],
+        });
+    }
+    render() {
+        var nodes = this.state.data.map(function(entity) {
+            return (
+                <ShiftDetailsView key={entity._id} entity={entity} onUpdate={this.update.bind(this) } onRemove={this.remove.bind(this) }></ShiftDetailsView>
+            );
+        }.bind(this));
+        return (
+            <div>
+              <h2>Shifts</h2>
+              <input ref="date" type="date" />
+              <button onClick={this.insert.bind(this) }>Add</button>
+              {nodes}
+            </div>
+        );
+    }
+}
+
+export class ShiftDetailsView extends BaseItemView<BaseItemViewProps, any> {
+    insert() {
+        var newEntity = this.state.entity as models.ShiftModel;
+        newEntity.positions = newEntity.positions || [];
+        newEntity.positions.push({
+            _id: new Date().toISOString(),
+            name: '',
+            employee: '',
+            date: newEntity.date,
+            start: '04:30',
+            end: '09:30',
+            lastModified: new Date()
+        });
+        this.setState({
+            entity: newEntity,
+            isDirty: true
+        });
+    }
+    handlePostionUpdate(entity) {
+        this.update();
+    }
+    handlePostionRemove(id) {
+        var newEntity = this.state.entity;
+        for (var i = 0; i < newEntity.positions.length; i++) {
+            if (newEntity.positions[i]._id === id) {
+                newEntity.positions.splice(i, 1);
+                this.setState({
+                    entity: newEntity,
+                    isDirty: true
+                });
+                this.update();
+                return;
+            }
+        }
+    }
+    render() {
+        var nodes = [];
+        if (this.state.entity.positions) {
+            nodes = this.state.entity.positions.map(function(position) {
+                return (
+                    <ShiftPositionDetailsView key={position._id} entity={position} onUpdate={this.handlePostionUpdate.bind(this) } onRemove={this.handlePostionRemove.bind(this) }></ShiftPositionDetailsView>
+                );
+            }.bind(this));
+        }
+        return (
+            <div key={this.props.entity._id}>
+            <div>
+            { moment(this.state.entity.date).format('dddd MMM Do') }
+            <button onClick={this.insert.bind(this) }>Add Position</button>
+            <button onClick={this.update.bind(this) } disabled={!this.state.isDirty}>Update</button>
+            <button onClick={this.remove.bind(this) }>X</button>
+            </div>
+            { nodes }
+            </div>
+        );
+    }
+}
+
+export class ShiftPositionDetailsView extends BaseItemView<BaseItemViewProps, any> {
+    render() {
+        return (
+            <div key={this.props.entity._id}>
+            <input value={ this.state.entity.name } onChange={ this.handleChange.bind(this, "name") } />
+            <select value={ this.state.entity.employee } onChange={ this.handleChange.bind(this, "employee") }>
+              <option></option>
+              <option>Chris</option>
+              <option>Jake</option>
+              <option>Justin</option>
+              <option>Matt</option>
+              <option>Michael</option>
+              <option>Aerin</option>
+              <option>Keely</option>
+              <option>Kelly</option>
+              <option>Merrill</option>
+              <option>Stassie</option>
+            </select>
+            <input value={ this.state.entity.start } type="time" onChange={ this.handleChange.bind(this, "start") } />
+            <input value={ this.state.entity.end } type="time" onChange={ this.handleChange.bind(this, "end") } />
+            { models.ShiftModel.shiftLength(this.state.entity) }
+            <button onClick={this.update.bind(this) } disabled={!this.state.isDirty}>Update</button>
+            <button onClick={this.remove.bind(this) }>X</button>
+            </div>
+        );
+    }
+}
+
+
+
+
+
+
+
 export class MainView extends React.Component<{}, any> {
     render() {
         return (
             <div>
           <h1>RMS</h1>
           <InventoryView></InventoryView>
-          <VendorView></VendorView>
+          <VendorsView></VendorsView>
+          <ShiftsView></ShiftsView>
             </div>
         );
     }

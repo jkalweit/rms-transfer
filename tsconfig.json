@@ -4,6 +4,7 @@
 	},
 	"files" : [
 		"db.ts",
+		"rms-rest.ts",
 		"server.ts"
 	]
 }

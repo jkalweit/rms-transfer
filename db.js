@@ -29,6 +29,7 @@ function insert(collection, item, callback) {
             console.error(error);
             return;
         }
+        item.lastModified = new Date();
         items.insert(item, function (error, result) {
             if (error) {
                 console.error(error);
@@ -47,6 +48,7 @@ function patch(collection, item, callback) {
         }
         var _id = new ObjectId(item._id);
         delete item._id;
+        delete item.lastModified;
         items.update({ "_id": _id }, {
             "$set": item,
             "$currentDate": {

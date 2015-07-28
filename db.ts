@@ -8,24 +8,6 @@ var db = new mongodb.Db('rms', server, { w: 1 });
 db.open(function() { });
 
 
-/*export function getInventoryItems(callback: (items: InventoryItemModel[]) => void) {
-    get<InventoryItemModel>(InventoryItemModel.collection, callback);
-}
-
-export function insertInventoryItem(item: InventoryItemModel, callback: (item: InventoryItemModel) => void) {
-    insert(InventoryItemModel.collection, item, callback);
-}
-
-export function patchInventoryItem(item: InventoryItemModel, callback: (item: InventoryItemModel) => void) {
-    patch(InventoryItemModel.collection, item, callback);
-}
-
-export function removeInventoryItem(id: string, callback: (result: any) => void) {
-    remove(InventoryItemModel.collection, id, callback);
-}*/
-
-
-
 
 export function get<T extends models.DbObjectModel>(collectionName: string, filter: any, callback: (items: T[]) => void) {
     db.collection(collectionName, function(error, collection) {
@@ -44,6 +26,7 @@ export function getById<T extends models.DbObjectModel>(collectionName: string, 
 export function insert<T extends models.DbObjectModel>(collection: string, item: T, callback: (item: T) => void) {
     db.collection(collection, function(error, items) {
         if (error) { console.error(error); return; }
+        item.lastModified = new Date();
         items.insert(
             item,
             function(error, result) {
@@ -60,6 +43,7 @@ export function patch<T extends models.DbObjectModel>(collection: string, item: 
         if (error) { console.error(error); return; }
         var _id = new ObjectId(item._id);
         delete item._id; // _id is immutable, so don't include in $set
+        delete item.lastModified; // don't try to update lastModified, it is done by $currentDate
         items.update(
             { "_id": _id },
             {
