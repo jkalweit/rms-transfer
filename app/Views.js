@@ -31,11 +31,19 @@ define(["require", "exports", 'react/addons', 'jquery', 'socket.io', 'moment', '
                 data: [],
                 isDisabled: false
             };
+            this.socketSubscriptions = {};
             socket.on('updated:' + this.collectionName, function (data) {
-                console.log('Updated: ' + collectionName);
                 this.refresh();
+                var subscribers = this.socketSubscriptions[data.action] || [];
+                subscribers.forEach(function (callback) {
+                    callback(data);
+                });
             }.bind(this));
         }
+        BaseView.prototype.subscribe = function (action, callback) {
+            this.socketSubscriptions[action] = this.socketSubscriptions[action] || [];
+            this.socketSubscriptions[action].push(callback);
+        };
         BaseView.prototype.toggleIsDisabled = function () {
             this.setState({ isDisabled: !this.state.isDisabled });
         };
@@ -292,16 +300,20 @@ define(["require", "exports", 'react/addons', 'jquery', 'socket.io', 'moment', '
     var KitchenOrdersView = (function (_super) {
         __extends(KitchenOrdersView, _super);
         function KitchenOrdersView(props) {
+            var _this = this;
             _super.call(this, props, models.KitchenOrderModel.collectionName);
             this.state.isDisabled = false;
+            this.subscribe('inserted', function (data) {
+                React.findDOMNode(_this.refs['newOrderSound'])['play']();
+            });
         }
         KitchenOrdersView.prototype.handleComplete = function (entity) {
-            entity.completedAt = new Date();
-            React.findDOMNode(this.refs['alertCompletedSound'])['play']();
+            entity.completedAt = (new Date()).toISOString();
+            React.findDOMNode(this.refs['orderCompletedSound'])['play']();
             this.update(entity);
         };
         KitchenOrdersView.prototype.handleAcknowledge = function (entity) {
-            entity.acknowledgedAt = new Date();
+            entity.acknowledgedAt = (new Date()).toISOString();
             this.update(entity);
         };
         KitchenOrdersView.prototype.render = function () {
@@ -311,7 +323,7 @@ define(["require", "exports", 'react/addons', 'jquery', 'socket.io', 'moment', '
             var style = {
                 display: this.state.isDisabled ? 'none' : 'block'
             };
-            return (React.createElement("div", null, React.createElement("audio", {"ref": "alertSound", "src": "/content/audio/bell.mp3", "preload": "auto"}), React.createElement("audio", {"ref": "alertCompletedSound", "src": "/content/audio/tada.mp3", "preload": "auto"}), React.createElement("div", {"onClick": this.toggleIsDisabled.bind(this)}, React.createElement("h2", null, "Kitchen Orders")), React.createElement("div", {"style": style}, nodes)));
+            return (React.createElement("div", null, React.createElement("audio", {"ref": "newOrderSound", "src": "/content/audio/bell.mp3", "preload": "auto"}), React.createElement("audio", {"ref": "orderCompletedSound", "src": "/content/audio/tada.mp3", "preload": "auto"}), React.createElement("div", {"onClick": this.toggleIsDisabled.bind(this)}, React.createElement("h2", null, "Kitchen Orders")), React.createElement("div", {"style": style}, nodes)));
         };
         return KitchenOrdersView;
     })(BaseView);
@@ -385,7 +397,7 @@ define(["require", "exports", 'react/addons', 'jquery', 'socket.io', 'moment', '
                 return 0;
             }
             var nodes = this.props.entity.kitchenOrderItems.sort(compareMilli).map(function (entity) {
-                return (React.createElement(KitchenOrderItemView, {"key": entity.id, "entity": entity}));
+                return (React.createElement(KitchenOrderItemView, {"key": entity.addedToOrderAt, "entity": entity}));
             });
             var backgroundColor;
             var bucket = Math.floor(moment(this.props.entity.created).minutes() / 10);
@@ -492,7 +504,7 @@ define(["require", "exports", 'react/addons', 'jquery', 'socket.io', 'moment', '
                 return 0;
             }
             var nodes = this.props.entity.kitchenOrderItemOptions.sort(compareSortOrder).map(function (entity) {
-                return (React.createElement(KitchenOrderItemOptionView, {"key": entity.id, "entity": entity}));
+                return (React.createElement(KitchenOrderItemOptionView, {"key": entity.sortOrder, "entity": entity}));
             });
             var noteLines = this.props.entity.note != null ? this.props.entity.note.match(/[^\r\n]+/g) : [];
             var noteNodes = [];

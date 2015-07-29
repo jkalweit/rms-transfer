@@ -43,8 +43,12 @@ export function buildREST<T extends models.DbObjectModel>(app: express.Express, 
           });
       })
       .post(function(req, res, next) {
-          db.insert<T>(collectionName, req.body, function(result) {
-              io.emit('updated:' + collectionName);
+          db.insert<T>(collectionName, req.body, function(result, item) {
+              io.emit('updated:' + collectionName, {
+                  action: "inserted",
+                  item: item,
+                  result: result
+                });
               res.send(result);
           });
       });
@@ -56,13 +60,21 @@ export function buildREST<T extends models.DbObjectModel>(app: express.Express, 
         });
       })
       .patch(function(req, res, next) {
-          db.patch<T>(collectionName, req.body, function(result) {
-              io.emit('updated:' + collectionName);
+          db.patch<T>(collectionName, req.body, function(result, patch) {
+              io.emit('updated:' + collectionName, {
+                  action: "updated",
+                  patch: patch,
+                  result: result
+                });
               res.send(result);
           });
       }).delete(function(req, res, next) {
-          db.remove(collectionName, req.params.id, function(result) {
-              io.emit('updated:' + collectionName);
+          db.remove(collectionName, req.params.id, function(result, id) {
+              io.emit('updated:' + collectionName, {
+                  action: "deleted",
+                  id: id,                  
+                  result: result
+                });
               res.send(result);
           });
       });

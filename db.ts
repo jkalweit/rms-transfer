@@ -25,7 +25,7 @@ export function getById<T extends models.DbObjectModel>(collectionName: string, 
     get(collectionName, { id: new ObjectId(id) }, {}, callback);
 }
 
-export function insert<T extends models.DbObjectModel>(collection: string, item: T, callback: (item: T) => void) {
+export function insert<T extends models.DbObjectModel>(collection: string, item: T, callback: (result: any, item: T) => void) {
     db.collection(collection, function(error, items) {
         if (error) { console.error(error); return; }
         item.created = new Date();
@@ -34,14 +34,14 @@ export function insert<T extends models.DbObjectModel>(collection: string, item:
             item,
             function(error, result) {
                 if (error) { console.error(error); return; }
-                callback(result);
+                callback(result, item);
             }
         );
     });
 }
 
 
-export function patch<T extends models.DbObjectModel>(collection: string, item: T, callback: (item: T) => void) {
+export function patch<T extends models.DbObjectModel>(collection: string, item: T, callback: (result: any, item: T) => void) {
     db.collection(collection, function(error, items) {
         if (error) { console.error(error); return; }
         var _id = new ObjectId(item._id);
@@ -58,14 +58,14 @@ export function patch<T extends models.DbObjectModel>(collection: string, item: 
             },
             function(error, result) {
                 if (error) { console.error(error); return; }
-                callback(result);
+                callback(result, item);
             }
         );
     });
 }
 
 
-export function remove(collection: string, id: string, callback: (result: any) => void) {
+export function remove(collection: string, id: string, callback: (result: any, id: string) => void) {
     db.collection(collection, function(error, items) {
         if (error) { console.error(error); return; }
         items.remove(
@@ -73,7 +73,7 @@ export function remove(collection: string, id: string, callback: (result: any) =
             { single: true },
             function(error, result) {
                 if (error) { console.error(error); return; }
-                callback(result);
+                callback(result, id);
             }
         );
     });

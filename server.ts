@@ -11,7 +11,7 @@ import Mongo = require('mongodb');
 var ObjectId = Mongo.ObjectID;
 
 import models = require('./app/models');
-import rmsRest = require('./rms-rest')
+import rmsRest = require('./rms-rest');
 
 
 
@@ -34,7 +34,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 rmsRest.buildREST<models.InventoryItemModel>(app, models.InventoryItemModel.collectionName);
 rmsRest.buildREST<models.VendorModel>(app, models.VendorModel.collectionName);
 rmsRest.buildREST<models.ShiftModel>(app, models.ShiftModel.collectionName, { get: { date : 1 } });
-rmsRest.buildREST<models.KitchenOrderModel>(app, models.KitchenOrderModel.collectionName, { get: { created: 1 }});
+rmsRest.buildREST<models.KitchenOrderModel>(app, models.KitchenOrderModel.collectionName);
 var io = rmsRest.startSocketIO(server);
 
 /*var api = express.Router();
@@ -74,7 +74,6 @@ app.get('/', function(req, res) {
 app.use('/app', express.static(path.join(__dirname, './app')));
 app.use('/bower_components', express.static(path.join(__dirname, './bower_components')));
 app.use('/content', express.static(path.join(__dirname, './content')));
-
 
 var port = process.env.PORT || 1337;
 server.listen(port, function() {

@@ -32,8 +32,12 @@ function buildREST(app, collectionName, sort) {
         });
     })
         .post(function (req, res, next) {
-        db.insert(collectionName, req.body, function (result) {
-            io.emit('updated:' + collectionName);
+        db.insert(collectionName, req.body, function (result, item) {
+            io.emit('updated:' + collectionName, {
+                action: "inserted",
+                item: item,
+                result: result
+            });
             res.send(result);
         });
     });
@@ -44,13 +48,21 @@ function buildREST(app, collectionName, sort) {
         });
     })
         .patch(function (req, res, next) {
-        db.patch(collectionName, req.body, function (result) {
-            io.emit('updated:' + collectionName);
+        db.patch(collectionName, req.body, function (result, patch) {
+            io.emit('updated:' + collectionName, {
+                action: "updated",
+                patch: patch,
+                result: result
+            });
             res.send(result);
         });
     }).delete(function (req, res, next) {
-        db.remove(collectionName, req.params.id, function (result) {
-            io.emit('updated:' + collectionName);
+        db.remove(collectionName, req.params.id, function (result, id) {
+            io.emit('updated:' + collectionName, {
+                action: "deleted",
+                id: id,
+                result: result
+            });
             res.send(result);
         });
     });

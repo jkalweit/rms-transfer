@@ -20,7 +20,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 rmsRest.buildREST(app, models.InventoryItemModel.collectionName);
 rmsRest.buildREST(app, models.VendorModel.collectionName);
 rmsRest.buildREST(app, models.ShiftModel.collectionName, { get: { date: 1 } });
-rmsRest.buildREST(app, models.KitchenOrderModel.collectionName, { get: { created: 1 } });
+rmsRest.buildREST(app, models.KitchenOrderModel.collectionName);
 var io = rmsRest.startSocketIO(server);
 app.get('/', function (req, res) {
     res.sendFile(path.join(__dirname, './index.html'));

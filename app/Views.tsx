@@ -28,6 +28,7 @@ export class BaseItemViewProps extends BaseViewProps {
 
 export class BaseView<T, P, S> extends React.Component<P, any> {
     collectionName: string;
+    private socketSubscriptions: any;
     constructor(props, collectionName: string) {
         super(props);
         this.collectionName = collectionName;
@@ -35,11 +36,19 @@ export class BaseView<T, P, S> extends React.Component<P, any> {
             data: [],
             isDisabled: false
         };
-
+        this.socketSubscriptions = {};
         socket.on('updated:' + this.collectionName, function(data) {
-            console.log('Updated: ' + collectionName);
+            //console.log('Updated: ' + collectionName + ': ' + JSON.stringify(data));
             this.refresh();
+            var subscribers = this.socketSubscriptions[data.action] || [];
+            subscribers.forEach(function(callback) {
+                callback(data);
+            });
         }.bind(this));
+    }
+    subscribe(action: string, callback: (any) => void) {
+        this.socketSubscriptions[action] = this.socketSubscriptions[action] || [];
+        this.socketSubscriptions[action].push(callback);
     }
     toggleIsDisabled() {
         this.setState({ isDisabled: !this.state.isDisabled });
@@ -402,14 +411,17 @@ export class KitchenOrdersView extends BaseView<models.VendorModel, any, any> {
     constructor(props) {
         super(props, models.KitchenOrderModel.collectionName);
         this.state.isDisabled = false;
+        this.subscribe('inserted', (data: any) => {
+            React.findDOMNode(this.refs['newOrderSound'])['play']();
+        });
     }
     handleComplete(entity) {
-      entity.completedAt = new Date();
-      React.findDOMNode(this.refs['alertCompletedSound'])['play']();
-      this.update(entity);
+        entity.completedAt = (new Date()).toISOString();
+        React.findDOMNode(this.refs['orderCompletedSound'])['play']();
+        this.update(entity);
     }
     handleAcknowledge(entity) {
-        entity.acknowledgedAt = new Date();
+        entity.acknowledgedAt = (new Date()).toISOString();
         this.update(entity);
     }
     render() {
@@ -425,8 +437,8 @@ export class KitchenOrdersView extends BaseView<models.VendorModel, any, any> {
 
         return (
             <div>
-              <audio ref="alertSound" src="/content/audio/bell.mp3" preload="auto"></audio>
-              <audio ref="alertCompletedSound" src="/content/audio/tada.mp3" preload="auto"></audio>
+              <audio ref="newOrderSound" src="/content/audio/bell.mp3" preload="auto"></audio>
+              <audio ref="orderCompletedSound" src="/content/audio/tada.mp3" preload="auto"></audio>
               <div onClick={ this.toggleIsDisabled.bind(this) }>
                 <h2>Kitchen Orders</h2>
               </div>
@@ -472,9 +484,9 @@ export class KitchenOrderDetailsView extends BaseItemView<any, any> {
         this.setState({ timeElapsed: this.formatElapsedTime() });
     }
     componentDidMount() {
-      if(!this.state.isComplete) {
-        this.interval = setInterval(this.tick.bind(this), 1000);
-      }
+        if (!this.state.isComplete) {
+            this.interval = setInterval(this.tick.bind(this), 1000);
+        }
     }
     componentWillUnmount() {
         clearInterval(this.interval);
@@ -508,7 +520,7 @@ export class KitchenOrderDetailsView extends BaseItemView<any, any> {
 
         var nodes = this.props.entity.kitchenOrderItems.sort(compareMilli).map(function(entity) {
             return (
-                <KitchenOrderItemView key={entity.id} entity={entity} />
+                <KitchenOrderItemView key={entity.addedToOrderAt} entity={entity} />
             );
         });
         var backgroundColor;
@@ -611,88 +623,88 @@ export class KitchenOrderDetailsView extends BaseItemView<any, any> {
 }
 
 export class KitchenOrderItemView extends BaseItemView<any, any> {
-  render() {
-    var me = this;
+    render() {
+        var me = this;
 
-    function compareSortOrder(a,b) {
-      if(a.sortOrder < b.sortOrder) return -1;
-      if(a.sortOrder > b.sortOrder) return 1;
-      return 0;
-    }
+        function compareSortOrder(a, b) {
+            if (a.sortOrder < b.sortOrder) return -1;
+            if (a.sortOrder > b.sortOrder) return 1;
+            return 0;
+        }
 
-    var nodes = this.props.entity.kitchenOrderItemOptions.sort(compareSortOrder).map(function (entity) {
-        return (
-            <KitchenOrderItemOptionView key={entity.id} entity={entity} />
-        );
-    });
-
-    var noteLines = this.props.entity.note != null ? this.props.entity.note.match(/[^\r\n]+/g) : [];
-
-    var noteNodes = [];
-
-    if(noteLines != null) {
-
-        noteNodes = noteLines.map(function (line) {
-
-            var noteStyle = {
-                color: 'black'
-            };
-
-            var lower = line.trim().toLowerCase();
-
-            if(lower.indexOf('add') == 0){
-                noteStyle.color = '#00AA00';
-            } else if(lower.indexOf('no') == 0) {
-                noteStyle.color = '#AA0000';
-            }
-
+        var nodes = this.props.entity.kitchenOrderItemOptions.sort(compareSortOrder).map(function(entity) {
             return (
-                <div className="kitchenOrderItemNote" style={ noteStyle }>{ line }</div>
+                <KitchenOrderItemOptionView key={entity.sortOrder} entity={entity} />
             );
         });
-    };
 
-    var icon = this.props.entity.prepType ? '/content/icons/' + this.props.entity.prepType.toLowerCase() + '.png' : '';
+        var noteLines = this.props.entity.note != null ? this.props.entity.note.match(/[^\r\n]+/g) : [];
 
-    return (
-      <div className="kitchenOrderItem">
+        var noteNodes = [];
+
+        if (noteLines != null) {
+
+            noteNodes = noteLines.map(function(line) {
+
+                var noteStyle = {
+                    color: 'black'
+                };
+
+                var lower = line.trim().toLowerCase();
+
+                if (lower.indexOf('add') == 0) {
+                    noteStyle.color = '#00AA00';
+                } else if (lower.indexOf('no') == 0) {
+                    noteStyle.color = '#AA0000';
+                }
+
+                return (
+                    <div className="kitchenOrderItemNote" style={ noteStyle }>{ line }</div>
+                );
+            });
+        };
+
+        var icon = this.props.entity.prepType ? '/content/icons/' + this.props.entity.prepType.toLowerCase() + '.png' : '';
+
+        return (
+            <div className="kitchenOrderItem">
         <div className="kitchenOrderItemDescription"><img src={icon} />{ this.props.entity.description }</div>
         {nodes}
         {noteNodes}
-      </div>
-    );
-  }
+            </div>
+        );
+    }
 }
 
 export class KitchenOrderItemOptionView extends BaseItemView<any, any> {
-  render() {
-    var me = this;
-    var color;
-    var textDecoration = 'none';
-    switch(this.props.entity.type) {
-        case 'Remove':
-            color = '#AA0000';
-            textDecoration = 'line-through';
-            break;
-        case 'Add':
-            color = '#00AA00';
-            break;
-        case 'Option':
-            color = '#0000AA';
-            break;
-        default:
-            color = 'rgba(0,0,0,0.87)';
-    }
-    var icon = this.props.entity.prepType ? '/content/icons/' + this.props.entity.prepType.toLowerCase() + '.png' : '';
+    render() {
+        var me = this;
+        var color;
+        var textDecoration = 'none';
+        switch (this.props.entity.type) {
+            case 'Remove':
+                color = '#AA0000';
+                textDecoration = 'line-through';
+                break;
+            case 'Add':
+                color = '#00AA00';
+                break;
+            case 'Option':
+                color = '#0000AA';
+                break;
+            default:
+                color = 'rgba(0,0,0,0.87)';
+        }
+        var icon = this.props.entity.prepType ? '/content/icons/' + this.props.entity.prepType.toLowerCase() + '.png' : '';
 
-    var style = {
-        color: color,
-        textDecoration: textDecoration
-    };
-    return (
-      <div className="kitchenOrderItemOptionDescription" style={style}><img src={icon} />{ this.props.entity.description }</div>
-    );
-  }
+        var style = {
+            color: color,
+            textDecoration: textDecoration
+        };
+        return (
+            <div className="kitchenOrderItemOptionDescription" style={style}><img src={icon} />{ this.props.entity.description }</div>
+        );
+    }
 }
 
 

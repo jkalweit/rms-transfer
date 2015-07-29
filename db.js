@@ -36,7 +36,7 @@ function insert(collection, item, callback) {
                 console.error(error);
                 return;
             }
-            callback(result);
+            callback(result, item);
         });
     });
 }
@@ -61,7 +61,7 @@ function patch(collection, item, callback) {
                 console.error(error);
                 return;
             }
-            callback(result);
+            callback(result, item);
         });
     });
 }
@@ -77,7 +77,7 @@ function remove(collection, id, callback) {
                 console.error(error);
                 return;
             }
-            callback(result);
+            callback(result, id);
         });
     });
 }
