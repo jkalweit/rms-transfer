@@ -4,31 +4,26 @@ import moment = require('moment');
 
 export class DbObjectModel {
     _id: string;
+    created: Date;
     lastModified: Date;
     static collectionName: string;
 }
 
-export class InventoryItemModel implements DbObjectModel {
-    _id: string
-    lastModified: Date;
+export class InventoryItemModel extends DbObjectModel {
     name: string;
     note: string;
     count: number;
     static collectionName: string = 'inventory_items';
 }
 
-export class VendorModel implements DbObjectModel {
-    _id: string
-    lastModified: Date;
+export class VendorModel extends DbObjectModel {
     name: string;
     note: string;
     static collectionName: string = 'vendors';
 }
 
 
-export class ShiftModel implements DbObjectModel {
-    _id: string
-    lastModified: Date;
+export class ShiftModel extends DbObjectModel {
     date: Date
     start: string;
     end: string;
@@ -52,13 +47,24 @@ export class ShiftModel implements DbObjectModel {
     }
 }
 
-export class ShiftPositionModel implements DbObjectModel {
-    _id: string
-    lastModified: Date;
+
+
+export class ShiftPositionModel {
     name: string;
     employee: string;
-    date: Date
+    date: Date;
     start: string;
     end: string;
     static collectionName: string = 'shifts.position';
+}
+
+
+export class KitchenOrderModel extends DbObjectModel {
+    name: string;
+    isTogo: boolean;
+    location: string;
+    submittedAt: Date;
+    acknowledgedAt: Date;
+    completedAt: Date;
+    static collectionName: string = 'kitchen_orders';
 }

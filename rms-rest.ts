@@ -12,9 +12,13 @@ var MongoClient = Mongo.MongoClient;
 var ObjectId = Mongo.ObjectID;
 var url = 'mongodb://localhost:27017/test2';
 
-var io;
+var io : SocketIO.Server;
 
-export function startSocketIO(server: any) {
+export function getDb() : Mongo.Db {
+  return db.db;
+}
+
+export function startSocketIO(server: any) : SocketIO.Server {
   io = socketio(server);
   io.on('connection', function(socket){
     console.log('a user connected');
@@ -22,16 +26,19 @@ export function startSocketIO(server: any) {
       console.log('user disconnected');
     });
   });
+  return io;
 }
 
-export function buildREST<T extends models.DbObjectModel>(app: express.Express, collectionName: string) {
+
+
+export function buildREST<T extends models.DbObjectModel>(app: express.Express, collectionName: string, sort: db.SortOptions = {}) : express.Router {
 
   var api = express.Router();
 
   // REST API
   api.route('/' + collectionName)
       .get(function(req, res, next) {
-          db.get<T>(collectionName, {}, function(result) {
+          db.get<T>(collectionName, {}, sort, function(result) {
               res.send(result);
           });
       })
@@ -61,4 +68,6 @@ export function buildREST<T extends models.DbObjectModel>(app: express.Express, 
       });
 
   app.use('/api', api);
+
+  return api;
 }

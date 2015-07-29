@@ -7,6 +7,10 @@ var MongoClient = Mongo.MongoClient;
 var ObjectId = Mongo.ObjectID;
 var url = 'mongodb://localhost:27017/test2';
 var io;
+function getDb() {
+    return db.db;
+}
+exports.getDb = getDb;
 function startSocketIO(server) {
     io = socketio(server);
     io.on('connection', function (socket) {
@@ -15,13 +19,15 @@ function startSocketIO(server) {
             console.log('user disconnected');
         });
     });
+    return io;
 }
 exports.startSocketIO = startSocketIO;
-function buildREST(app, collectionName) {
+function buildREST(app, collectionName, sort) {
+    if (sort === void 0) { sort = {}; }
     var api = express.Router();
     api.route('/' + collectionName)
         .get(function (req, res, next) {
-        db.get(collectionName, {}, function (result) {
+        db.get(collectionName, {}, sort, function (result) {
             res.send(result);
         });
     })
@@ -49,6 +55,7 @@ function buildREST(app, collectionName) {
         });
     });
     app.use('/api', api);
+    return api;
 }
 exports.buildREST = buildREST;
 //# sourceMappingURL=rms-rest.js.map
