@@ -20,13 +20,14 @@ app.use(bodyParser.urlencoded({ extended: true }));
 rmsRest.buildREST(app, models.InventoryItemModel.collectionName);
 rmsRest.buildREST(app, models.VendorModel.collectionName);
 rmsRest.buildREST(app, models.ShiftModel.collectionName, { get: { date: 1 } });
-rmsRest.buildREST(app, models.KitchenOrderModel.collectionName);
+rmsRest.buildREST(app, models.KitchenOrderModel.collectionName, { get: { created: 1 } });
 var io = rmsRest.startSocketIO(server);
 app.get('/', function (req, res) {
     res.sendFile(path.join(__dirname, './index.html'));
 });
 app.use('/app', express.static(path.join(__dirname, './app')));
 app.use('/bower_components', express.static(path.join(__dirname, './bower_components')));
+app.use('/content', express.static(path.join(__dirname, './content')));
 var port = process.env.PORT || 1337;
 server.listen(port, function () {
     console.log('Express is listening on %s:%s', server.address().address, server.address().port);

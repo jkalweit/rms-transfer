@@ -297,6 +297,7 @@ define(["require", "exports", 'react/addons', 'jquery', 'socket.io', 'moment', '
         }
         KitchenOrdersView.prototype.handleComplete = function (entity) {
             entity.completedAt = new Date();
+            React.findDOMNode(this.refs['alertCompletedSound'])['play']();
             this.update(entity);
         };
         KitchenOrdersView.prototype.handleAcknowledge = function (entity) {
@@ -310,7 +311,7 @@ define(["require", "exports", 'react/addons', 'jquery', 'socket.io', 'moment', '
             var style = {
                 display: this.state.isDisabled ? 'none' : 'block'
             };
-            return (React.createElement("div", null, React.createElement("div", {"onClick": this.toggleIsDisabled.bind(this)}, React.createElement("h2", null, "Kitchen Orders")), React.createElement("div", {"style": style}, nodes)));
+            return (React.createElement("div", null, React.createElement("audio", {"ref": "alertSound", "src": "/content/audio/bell.mp3", "preload": "auto"}), React.createElement("audio", {"ref": "alertCompletedSound", "src": "/content/audio/tada.mp3", "preload": "auto"}), React.createElement("div", {"onClick": this.toggleIsDisabled.bind(this)}, React.createElement("h2", null, "Kitchen Orders")), React.createElement("div", {"style": style}, nodes)));
         };
         return KitchenOrdersView;
     })(BaseView);
@@ -361,6 +362,7 @@ define(["require", "exports", 'react/addons', 'jquery', 'socket.io', 'moment', '
             if (this.state.isAcknowledged && !this.state.isComplete) {
                 this.props.onComplete(this.props.entity);
                 this.setState({ isComplete: true });
+                clearInterval(this.interval);
                 e.preventDefault();
             }
         };
@@ -448,8 +450,9 @@ define(["require", "exports", 'react/addons', 'jquery', 'socket.io', 'moment', '
                 width: progress * 100 + '%',
                 backgroundColor: progressColor
             };
+            var isTogo = this.props.entity.isTogo === true || this.props.entity.isTogo === 'true';
             var togoStyle = {
-                display: this.props.entity.isTogo ? 'block' : 'none'
+                display: isTogo ? 'block' : 'none'
             };
             var completeButtonStyle = {
                 backgroundColor: this.state.isComplete ? '#777777' : '#FFFFFF',
@@ -509,7 +512,7 @@ define(["require", "exports", 'react/addons', 'jquery', 'socket.io', 'moment', '
                 });
             }
             ;
-            var icon = this.props.entity.prepType ? '/content/icon_' + this.props.entity.prepType.toLowerCase() + '.png' : '';
+            var icon = this.props.entity.prepType ? '/content/icons/' + this.props.entity.prepType.toLowerCase() + '.png' : '';
             return (React.createElement("div", {"className": "kitchenOrderItem"}, React.createElement("div", {"className": "kitchenOrderItemDescription"}, React.createElement("img", {"src": icon}), this.props.entity.description), nodes, noteNodes));
         };
         return KitchenOrderItemView;
@@ -538,7 +541,7 @@ define(["require", "exports", 'react/addons', 'jquery', 'socket.io', 'moment', '
                 default:
                     color = 'rgba(0,0,0,0.87)';
             }
-            var icon = this.props.entity.prepType ? '/content/icon_' + this.props.entity.prepType.toLowerCase() + '.png' : '';
+            var icon = this.props.entity.prepType ? '/content/icons/' + this.props.entity.prepType.toLowerCase() + '.png' : '';
             var style = {
                 color: color,
                 textDecoration: textDecoration
@@ -554,7 +557,7 @@ define(["require", "exports", 'react/addons', 'jquery', 'socket.io', 'moment', '
             _super.apply(this, arguments);
         }
         MainView.prototype.render = function () {
-            return (React.createElement("div", null, React.createElement("h1", null, "RMS"), React.createElement(InventoryView, null), React.createElement(VendorsView, null), React.createElement(ShiftsView, null), React.createElement(KitchenOrdersView, null)));
+            return (React.createElement("div", null, React.createElement("h1", null, "RMS"), React.createElement(KitchenOrdersView, null)));
         };
         return MainView;
     })(React.Component);

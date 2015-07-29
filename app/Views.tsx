@@ -13,6 +13,7 @@ var socket = io();
 var ReactCSSTransitionGroup = React.addons.CSSTransitionGroup;
 
 
+
 export class BaseViewProps {
     public key: string;
     public entity: any;
@@ -404,6 +405,7 @@ export class KitchenOrdersView extends BaseView<models.VendorModel, any, any> {
     }
     handleComplete(entity) {
       entity.completedAt = new Date();
+      React.findDOMNode(this.refs['alertCompletedSound'])['play']();
       this.update(entity);
     }
     handleAcknowledge(entity) {
@@ -423,6 +425,8 @@ export class KitchenOrdersView extends BaseView<models.VendorModel, any, any> {
 
         return (
             <div>
+              <audio ref="alertSound" src="/content/audio/bell.mp3" preload="auto"></audio>
+              <audio ref="alertCompletedSound" src="/content/audio/tada.mp3" preload="auto"></audio>
               <div onClick={ this.toggleIsDisabled.bind(this) }>
                 <h2>Kitchen Orders</h2>
               </div>
@@ -480,6 +484,7 @@ export class KitchenOrderDetailsView extends BaseItemView<any, any> {
         if (this.state.isAcknowledged && !this.state.isComplete) {
             this.props.onComplete(this.props.entity);
             this.setState({ isComplete: true });
+            clearInterval(this.interval);
             e.preventDefault();
         }
     }
@@ -561,8 +566,9 @@ export class KitchenOrderDetailsView extends BaseItemView<any, any> {
             backgroundColor: progressColor
         };
 
+        var isTogo = this.props.entity.isTogo === true || this.props.entity.isTogo === 'true';
         var togoStyle = {
-            display: this.props.entity.isTogo ? 'block' : 'none'
+            display: isTogo ? 'block' : 'none'
         }
 
         var completeButtonStyle = {
@@ -646,7 +652,7 @@ export class KitchenOrderItemView extends BaseItemView<any, any> {
         });
     };
 
-    var icon = this.props.entity.prepType ? '/content/icon_' + this.props.entity.prepType.toLowerCase() + '.png' : '';
+    var icon = this.props.entity.prepType ? '/content/icons/' + this.props.entity.prepType.toLowerCase() + '.png' : '';
 
     return (
       <div className="kitchenOrderItem">
@@ -677,7 +683,7 @@ export class KitchenOrderItemOptionView extends BaseItemView<any, any> {
         default:
             color = 'rgba(0,0,0,0.87)';
     }
-    var icon = this.props.entity.prepType ? '/content/icon_' + this.props.entity.prepType.toLowerCase() + '.png' : '';
+    var icon = this.props.entity.prepType ? '/content/icons/' + this.props.entity.prepType.toLowerCase() + '.png' : '';
 
     var style = {
         color: color,
@@ -690,17 +696,15 @@ export class KitchenOrderItemOptionView extends BaseItemView<any, any> {
 }
 
 
-
-
-
 export class MainView extends React.Component<{}, any> {
     render() {
         return (
             <div>
           <h1>RMS</h1>
+          { /*
           <InventoryView></InventoryView>
           <VendorsView></VendorsView>
-          <ShiftsView></ShiftsView>
+        <ShiftsView></ShiftsView> */ }
           <KitchenOrdersView></KitchenOrdersView>
             </div>
         );
