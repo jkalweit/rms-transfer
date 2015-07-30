@@ -7,6 +7,12 @@
 	},
 	"files" : [
 		"Models.ts",
+		"BaseViews.tsx",
+		"TestViews.tsx",
+		"VendorViews.tsx",
+		"InventoryViews.tsx",
+		"ShiftViews.tsx",
+		"KitchenViews.tsx",
 		"Views.tsx"
 	]
 }
