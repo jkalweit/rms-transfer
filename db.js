@@ -4,12 +4,15 @@ var server = new mongodb.Server('localhost', 27017, { auto_reconnect: true });
 exports.db = new mongodb.Db('rms', server, { w: 1 });
 exports.db.open(function () { });
 function get(collectionName, filter, sort, callback) {
+    console.log('Here1 ' + collectionName);
     exports.db.collection(collectionName, function (error, collection) {
+        console.log('Here2');
         if (error) {
             console.error(error);
             return;
         }
-        collection.find(filter).sort(sort.get).toArray(function (error, objs) {
+        collection.find().toArray(function (error, objs) {
+            console.log('Here3');
             if (error) {
                 console.error(error);
                 return;
@@ -23,8 +26,16 @@ function getById(collectionName, id, callback) {
     get(collectionName, { id: new ObjectId(id) }, {}, callback);
 }
 exports.getById = getById;
+function exists(collectionName, id, callback) {
+    get(collectionName, { id: new ObjectId(id) }, {}, function (items) {
+        return items.length > 0;
+    });
+}
+exports.exists = exists;
 function insert(collection, item, callback) {
+    console.log('Here1');
     exports.db.collection(collection, function (error, items) {
+        console.log('Here2');
         if (error) {
             console.error(error);
             return;
@@ -32,6 +43,7 @@ function insert(collection, item, callback) {
         item.created = new Date();
         item.lastModified = item.created;
         items.insert(item, function (error, result) {
+            console.log('Here3');
             if (error) {
                 console.error(error);
                 return;

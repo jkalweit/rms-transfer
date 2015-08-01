@@ -23,30 +23,34 @@ function startSocketIO(server) {
             query.filter = query.filter || {};
             query.sort = query.sort || {};
             db.get(path, query.filter, query.sort, function (data) {
+                console.log('Sending queryed: ' + 'queryed:' + path + ' - ' + console.log(JSON.stringify(data)));
                 socket.emit('queryed:' + path, {
                     requestId: requestId,
                     data: data
                 });
             });
         });
-        socket.on('insert', function (requestId, path, data) {
-            console.log('insert: ' + path + ': ' + JSON.stringify(data));
-            db.insert(path, data, function (result, item) {
-                socket.emit('inserted:' + path, {
-                    requestId: requestId,
-                    result: result,
-                    data: item
-                });
-            });
-        });
-        socket.on('update', function (requestId, path, data) {
-            console.log('remove: ' + path + ': ' + JSON.stringify(data));
-            db.patch(path, data, function (result, patch) {
-                socket.emit('updated:' + path, {
-                    requestId: requestId,
-                    result: result,
-                    data: patch
-                });
+        socket.on('upsert', function (requestId, path, data) {
+            console.log('upsert: ' + path + ': ' + JSON.stringify(data));
+            db.exists(path, data._id, function (exists) {
+                if (exists) {
+                    db.patch(path, data, function (result, patch) {
+                        socket.emit('upserted:' + path, {
+                            requestId: requestId,
+                            result: result,
+                            data: patch
+                        });
+                    });
+                }
+                else {
+                    db.insert(path, data, function (result, item) {
+                        socket.emit('upserted:' + path, {
+                            requestId: requestId,
+                            result: result,
+                            data: item
+                        });
+                    });
+                }
             });
         });
         socket.on('remove', function (requestId, path, id) {

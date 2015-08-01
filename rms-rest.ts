@@ -30,16 +30,43 @@ export function startSocketIO<T extends models.DbObjectModel>(server: any): Sock
             console.log('query: ' + path + ': ' + JSON.stringify(query));
             query = query || {};
             query.filter = query.filter || {};
-              query.sort = query.sort || {};
+            query.sort = query.sort || {};
             db.get<T>(path, query.filter, query.sort, (data) => {
+               console.log('Sending queryed: ' + 'queryed:' + path + ' - ' + console.log(JSON.stringify(data)));
                 socket.emit('queryed:' + path, {
                     requestId: requestId,
                     data: data
-                  });
+                });
             });
         });
 
-        socket.on('insert', (requestId, path, data) => {
+
+        socket.on('upsert', (requestId, path, data) => {
+            console.log('upsert: ' + path + ': ' + JSON.stringify(data));
+            db.exists(path, data._id, (exists: boolean) => {
+
+                if (exists) {
+                    db.patch<T>(path, data, (result, patch) => {
+                        socket.emit('upserted:' + path, {
+                            requestId: requestId,
+                            result: result,
+                            data: patch
+                        });
+                    });
+                } else {
+                    db.insert<T>(path, data, (result, item) => {
+                        socket.emit('upserted:' + path, {
+                            requestId: requestId,
+                            result: result,
+                            data: item
+                        });
+                    });
+                }
+
+            });
+        });
+
+        /*socket.on('insert', (requestId, path, data) => {
             console.log('insert: ' + path + ': ' + JSON.stringify(data));
             db.insert<T>(path, data, function(result, item) {
                 socket.emit('inserted:' + path, {
@@ -51,7 +78,7 @@ export function startSocketIO<T extends models.DbObjectModel>(server: any): Sock
         });
 
         socket.on('update', (requestId, path, data) => {
-            console.log('remove: ' + path + ': ' + JSON.stringify(data));
+            console.log('update: ' + path + ': ' + JSON.stringify(data));
             db.patch<T>(path, data, function(result, patch) {
                 socket.emit('updated:' + path, {
                     requestId: requestId,
@@ -59,7 +86,7 @@ export function startSocketIO<T extends models.DbObjectModel>(server: any): Sock
                     data: patch
                 });
             });
-        });
+        });*/
 
         socket.on('remove', (requestId, path, id) => {
             console.log('remove: ' + path + ': ' + id);

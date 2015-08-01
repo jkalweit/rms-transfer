@@ -4,6 +4,7 @@
 	},
 	"files" : [
 		"db.ts",
+		"FilePersistence.ts",
 		"rms-rest.ts",
 		"server.ts"
 	]

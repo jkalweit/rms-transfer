@@ -28,8 +28,12 @@ define(["require", "exports", 'react/addons', './DataStores'], function (require
                 data: [],
                 isDisabled: false
             };
-            var doRefresh = this.refresh.bind(this);
-            this.dataStore = new dataStores.SocketIODataStore(collectionName, this.handleRefresh.bind(this), doRefresh, doRefresh, doRefresh);
+            var callbacks = {
+                queryCallback: this.handleRefresh.bind(this),
+                upsertCallback: this.refresh.bind(this),
+                removeCallback: this.refresh.bind(this)
+            };
+            this.dataStore = new dataStores.SocketIODataStore('inventory_items', callbacks);
             this.socketSubscriptions = {};
         }
         BaseView.prototype.subscribe = function (action, callback) {
@@ -43,19 +47,17 @@ define(["require", "exports", 'react/addons', './DataStores'], function (require
             this.refresh();
         };
         BaseView.prototype.refresh = function () {
-            console.log('doing requery: ' + this.dataStore.path);
-            this.dataStore.query({});
+            this.dataStore.query();
         };
         BaseView.prototype.handleRefresh = function (data) {
-            console.log('handlingRefresh: ' + this.dataStore.path + ': ' + JSON.stringify(data));
-            this.setState({ data: data.data });
+            this.setState({ data: data });
         };
         BaseView.prototype.insertBase = function (item) {
-            this.dataStore.insert(item);
+            this.dataStore.upsert(item);
         };
         BaseView.prototype.update = function (data) {
             var me = this;
-            this.dataStore.update(data);
+            this.dataStore.upsert(data);
         };
         BaseView.prototype.remove = function (id) {
             var me = this;

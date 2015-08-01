@@ -12,9 +12,12 @@ export interface SortOptions {
 }
 
 export function get<T extends models.DbObjectModel>(collectionName: string, filter: any, sort: SortOptions, callback: (items: T[]) => void) {
+   console.log('Here1 ' + collectionName);
     db.collection(collectionName, function(error, collection) {
+        console.log('Here2');
         if (error) { console.error(error); return; }
-        collection.find(filter).sort(sort.get).toArray(function(error, objs) {
+        collection.find().toArray(function(error, objs) {
+            console.log('Here3');
             if (error) { console.error(error); return; }
             callback(objs);
         });
@@ -25,14 +28,23 @@ export function getById<T extends models.DbObjectModel>(collectionName: string, 
     get(collectionName, { id: new ObjectId(id) }, {}, callback);
 }
 
+export function exists(collectionName: string, id: string, callback: (exists: boolean) => void) {
+    get(collectionName, { id: new ObjectId(id) }, {}, (items: any[]) => {
+          return items.length > 0;
+      });
+}
+
 export function insert<T extends models.DbObjectModel>(collection: string, item: T, callback: (result: any, item: T) => void) {
+  console.log('Here1');
     db.collection(collection, function(error, items) {
+      console.log('Here2');
         if (error) { console.error(error); return; }
         item.created = new Date();
         item.lastModified = item.created;
         items.insert(
             item,
             function(error, result) {
+              console.log('Here3');
                 if (error) { console.error(error); return; }
                 callback(result, item);
             }

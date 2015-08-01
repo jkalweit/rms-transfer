@@ -24,7 +24,7 @@ export class BaseItemViewProps extends BaseViewProps {
 export class BaseView<T extends models.DbObjectModel, P, S> extends React.Component<P, any> {
     collectionName: string;
     private socketSubscriptions: any;
-    private dataStore: dataStores.SocketIODataStore<T>;
+    private dataStore: dataStores.IDataStore<T>;
     constructor(props, collectionName: string) {
         super(props);
         this.collectionName = collectionName;
@@ -32,25 +32,15 @@ export class BaseView<T extends models.DbObjectModel, P, S> extends React.Compon
             data: [],
             isDisabled: false
         };
-        var doRefresh = this.refresh.bind(this);
-        this.dataStore = new dataStores.SocketIODataStore(collectionName, this.handleRefresh.bind(this), doRefresh, doRefresh, doRefresh);
+        var callbacks = {
+          queryCallback: this.handleRefresh.bind(this),
+          upsertCallback: this.refresh.bind(this),
+          removeCallback: this.refresh.bind(this)
+        }
+        //this.dataStore = new dataStores.LocalPersistence<T>('inventory_items', callbacks);
+        this.dataStore = new dataStores.SocketIODataStore<T>('inventory_items', callbacks);
 
         this.socketSubscriptions = {};
-          /*
-          socket.on('success', (message) => {
-            console.log('success! ' + JSON.stringify(message));
-          });
-          socket.on('err', (error) => {
-            console.log('Error: ' + JSON.stringify(error));
-          });
-        socket.on('updated:' + this.collectionName, function(data) {
-            //console.log('Updated: ' + collectionName + ': ' + JSON.stringify(data));
-            this.refresh();
-            var subscribers = this.socketSubscriptions[data.action] || [];
-            subscribers.forEach(function(callback) {
-                callback(data);
-            });
-        }.bind(this));*/
     }
     subscribe(action: string, callback: (any) => void) {
         this.socketSubscriptions[action] = this.socketSubscriptions[action] || [];
@@ -63,15 +53,13 @@ export class BaseView<T extends models.DbObjectModel, P, S> extends React.Compon
         this.refresh();
     }
     refresh() {
-        console.log('doing requery: ' + this.dataStore.path);
-        this.dataStore.query({});
+        this.dataStore.query();
     }
     handleRefresh(data) {
-      console.log('handlingRefresh: ' + this.dataStore.path + ': ' + JSON.stringify(data));
-      this.setState({ data: data.data });
+      this.setState({ data: data });
     }
     insertBase(item) {
-        this.dataStore.insert(item);
+        this.dataStore.upsert(item);
         //var me = this;
 
         /*$.post('/api/' + this.collectionName, item, function(result) {
@@ -81,7 +69,7 @@ export class BaseView<T extends models.DbObjectModel, P, S> extends React.Compon
     update(data) {
         var me = this;
         //socket.emit('update', data);
-        this.dataStore.update(data);
+        this.dataStore.upsert(data);
         /*$.ajax({
             url: '/api/' + this.collectionName + '/' + data._id,
             type: 'PATCH',

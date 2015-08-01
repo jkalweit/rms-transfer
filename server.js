@@ -4,9 +4,8 @@ var express = require('express');
 var http = require('http');
 var path = require('path');
 var bodyParser = require('body-parser');
-var Mongo = require('mongodb');
-var ObjectId = Mongo.ObjectID;
-var rmsRest = require('./rms-rest');
+var socketio = require('socket.io');
+var fp = require('./FilePersistence');
 var app = express();
 var server = http.createServer(app);
 app.use(function (req, res, next) {
@@ -16,7 +15,42 @@ app.use(function (req, res, next) {
 });
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-var io = rmsRest.startSocketIO(server);
+var io = socketio(server);
+var collections = ['inventory_items'];
+collections.forEach(function (collectionName) {
+    var persistence = new fp.FilePersistence(collectionName);
+    console.log('Setting up namespace: \'/' + collectionName + '\'');
+    var namespace = io.of('/' + collectionName);
+    namespace.on('connection', function (socket) {
+        console.log('someone connected to ' + collectionName);
+        socket.on('crud', function (request) {
+            console.log('Do action: ' + collectionName + ': ' + JSON.stringify(request));
+            if (request.action === 'query') {
+                socket.emit('queryed', {
+                    requestId: request.id,
+                    data: persistence.query()
+                });
+            }
+            else if (request.action === 'upsert') {
+                var result = {
+                    requestId: request.id,
+                    data: persistence.upsert(request.data)
+                };
+                socket.emit('upserted', result);
+                namespace.emit('itemUpserted', result.data);
+            }
+            else if (request.action === 'remove') {
+                persistence.remove(request.data);
+                ;
+                socket.emit('removed', {
+                    requestId: request.id,
+                    data: request.data._id
+                });
+                namespace.emit('itemRemoved', result.data._id);
+            }
+        });
+    });
+});
 app.get('/', function (req, res) {
     res.sendFile(path.join(__dirname, './index.html'));
 });

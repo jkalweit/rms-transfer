@@ -1,12 +1,5 @@
 /// <reference path="../typings/tsd.d.ts" />
 define(["require", "exports", 'socket.io'], function (require, exports, io) {
-    var socket = io();
-    var Request = (function () {
-        function Request() {
-        }
-        return Request;
-    })();
-    exports.Request = Request;
     function guid() {
         function s4() {
             return Math.floor((1 + Math.random()) * 0x10000)
@@ -16,65 +9,114 @@ define(["require", "exports", 'socket.io'], function (require, exports, io) {
         return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
     }
     exports.guid = guid;
+    var Request = (function () {
+        function Request() {
+        }
+        return Request;
+    })();
+    exports.Request = Request;
+    var LocalPersistence = (function () {
+        function LocalPersistence(collectionName, callbacks) {
+            if (callbacks === void 0) { callbacks = {}; }
+            this.collectionName = collectionName;
+            this.callbacks = callbacks || {};
+            var fromStorage = localStorage.getItem(this.collectionName);
+            console.log('Read from storage: ' + fromStorage);
+            this.collection = JSON.parse(fromStorage) || {};
+        }
+        LocalPersistence.prototype.query = function () {
+            if (this.callbacks.queryCallback) {
+                var result = [];
+                for (var id in this.collection) {
+                    result.push(this.collection[id]);
+                }
+                console.log('Queryed: ' + JSON.stringify(result));
+                this.callbacks.queryCallback(result);
+            }
+            else {
+                console.log('No query callback, skipping query.');
+            }
+        };
+        LocalPersistence.prototype.upsert = function (data) {
+            if (!data._id) {
+                data._id = guid();
+            }
+            if (!data.created) {
+                data.created = new Date();
+            }
+            data.lastModified = new Date();
+            console.log('Upserting: ' + data);
+            this.collection[data._id] = data;
+            this.persist();
+            if (this.callbacks.upsertCallback) {
+                this.callbacks.upsertCallback(data);
+            }
+        };
+        LocalPersistence.prototype.remove = function (id) {
+            delete this.collection[id];
+            this.persist();
+            if (this.callbacks.removeCallback) {
+                this.callbacks.removeCallback();
+            }
+        };
+        LocalPersistence.prototype.persist = function () {
+            var stringified = JSON.stringify(this.collection);
+            console.log('Persisting: ' + stringified);
+            localStorage.setItem(this.collectionName, stringified);
+        };
+        return LocalPersistence;
+    })();
+    exports.LocalPersistence = LocalPersistence;
     var SocketIODataStore = (function () {
-        function SocketIODataStore(path, queryCallback, insertCallback, updateCallback, removeCallback) {
+        function SocketIODataStore(collectionName, callbacks) {
             var _this = this;
             this.openRequests = {};
-            this.path = path;
-            this.queryCallback = queryCallback;
-            this.insertCallback = insertCallback;
-            this.updateCallback = updateCallback;
-            this.removeCallback = removeCallback;
-            socket.on('success', function (message) {
-                console.log('success! ' + JSON.stringify(message));
-            });
-            socket.on('err', function (error) {
-                console.log('Error: ' + JSON.stringify(error));
-            });
-            socket.on('queryed:' + this.path, function (data) {
-                console.log('queryed: ' + _this.path + ': ' + JSON.stringify(data));
+            this.collectionName = collectionName;
+            this.callbacks = callbacks || {};
+            console.log('Connecting to namespace: \'/' + this.collectionName + '\'');
+            this.socket = io('http://localhost:1337/' + this.collectionName);
+            this.socket.on('queryed', function (data) {
                 _this.clearRequest(data.requestId);
-                if (_this.queryCallback) {
+                if (_this.callbacks.queryCallback) {
                     console.log('Calling query callBack');
-                    _this.queryCallback(data);
+                    _this.callbacks.queryCallback(data.data);
                 }
             });
-            socket.on('inserted:' + this.path, function (data) {
-                console.log('Inserted: ' + _this.path + ': ' + JSON.stringify(data));
+            this.socket.on('upserted', function (data) {
                 _this.clearRequest(data.requestId);
-                if (_this.insertCallback) {
-                    console.log('Calling insert callBack');
-                    _this.insertCallback(data);
+                if (_this.callbacks.upsertCallback) {
+                    console.log('Calling upserted callBack');
+                    _this.callbacks.upsertCallback(data.data);
                 }
             });
-            socket.on('updated:' + this.path, function (data) {
-                console.log('Updated: ' + _this.path + ': ' + JSON.stringify(data));
+            this.socket.on('removed', function (data) {
                 _this.clearRequest(data.requestId);
-                if (_this.updateCallback) {
-                    console.log('Calling callBack');
-                    _this.updateCallback(data);
+                if (_this.callbacks.removeCallback) {
+                    console.log('Calling removed callBack');
+                    _this.callbacks.removeCallback();
                 }
             });
-            socket.on('removed:' + this.path, function (data) {
-                console.log('Removed: ' + _this.path + ': ' + JSON.stringify(data));
-                _this.clearRequest(data.requestId);
-                if (_this.removeCallback) {
-                    console.log('Calling remove callBack');
-                    _this.removeCallback(data);
+            this.socket.on('itemUpserted', function (data) {
+                if (_this.callbacks.upsertCallback) {
+                    console.log('Calling itemUpserted callBack');
+                    _this.callbacks.upsertCallback(data.data);
+                }
+            });
+            this.socket.on('itemRemoved', function (data) {
+                if (_this.callbacks.removeCallback) {
+                    console.log('Calling itemRemoved callBack');
+                    _this.callbacks.removeCallback();
                 }
             });
         }
-        SocketIODataStore.prototype.query = function (query) {
-            this.sendRequest('query', this.path, query);
+        SocketIODataStore.prototype.query = function () {
+            this.sendRequest('query', {});
         };
-        SocketIODataStore.prototype.insert = function (data) {
-            this.sendRequest('insert', this.path, data);
-        };
-        SocketIODataStore.prototype.update = function (data) {
-            this.sendRequest('update', this.path, data);
+        SocketIODataStore.prototype.upsert = function (data) {
+            this.sendRequest('upsert', data);
         };
         SocketIODataStore.prototype.remove = function (id) {
-            this.sendRequest('remove', this.path, id);
+            this.sendRequest('remove', id);
         };
         SocketIODataStore.prototype.showOpenRequests = function () {
             console.log("Open Requests:");
@@ -82,22 +124,19 @@ define(["require", "exports", 'socket.io'], function (require, exports, io) {
                 console.log(id + ' = ' + JSON.stringify(this.openRequests[id]));
             }
         };
-        SocketIODataStore.prototype.sendRequest = function (action, path, data) {
+        SocketIODataStore.prototype.sendRequest = function (action, data) {
             var request = new Request();
             request.id = guid();
             request.initiatedAt = new Date();
-            request.data = {
-                action: action,
-                path: path,
-                data: data
-            };
+            request.action = action;
+            request.path = this.collectionName;
+            request.data = data;
             this.openRequests[request.id] = request;
-            socket.emit(request.data.action, request.id, request.data.path, request.data.data);
-            this.showOpenRequests();
+            console.log('Sending request: ' + this.collectionName + ': ' + JSON.stringify(request));
+            this.socket.emit('crud', request);
         };
         SocketIODataStore.prototype.clearRequest = function (id) {
             delete this.openRequests[id];
-            this.showOpenRequests();
         };
         return SocketIODataStore;
     })();
