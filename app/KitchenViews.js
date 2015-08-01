@@ -11,7 +11,7 @@ define(["require", "exports", 'react/addons', 'moment', 'Models', './BaseViews']
         function KitchenOrdersView(props) {
             var _this = this;
             _super.call(this, props, models.KitchenOrderModel.collectionName);
-            this.state.isDisabled = false;
+            this.state.isDisabled = true;
             this.subscribe('inserted', function (data) {
                 React.findDOMNode(_this.refs['newOrderSound'])['play']();
             });

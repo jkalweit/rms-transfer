@@ -16,7 +16,7 @@ import baseViews = require('./BaseViews');
 export class KitchenOrdersView extends baseViews.BaseView<models.VendorModel, any, any> {
     constructor(props) {
         super(props, models.KitchenOrderModel.collectionName);
-        this.state.isDisabled = false;
+        this.state.isDisabled = true;
         this.subscribe('inserted', (data: any) => {
             React.findDOMNode(this.refs['newOrderSound'])['play']();
         });

@@ -4,8 +4,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-define(["require", "exports", 'react/addons', 'jquery', 'socket.io'], function (require, exports, React, $, io) {
-    var socket = io();
+define(["require", "exports", 'react/addons', './DataStores'], function (require, exports, React, dataStores) {
     var BaseViewProps = (function () {
         function BaseViewProps() {
         }
@@ -29,14 +28,9 @@ define(["require", "exports", 'react/addons', 'jquery', 'socket.io'], function (
                 data: [],
                 isDisabled: false
             };
+            var doRefresh = this.refresh.bind(this);
+            this.dataStore = new dataStores.SocketIODataStore(collectionName, this.handleRefresh.bind(this), doRefresh, doRefresh, doRefresh);
             this.socketSubscriptions = {};
-            socket.on('updated:' + this.collectionName, function (data) {
-                this.refresh();
-                var subscribers = this.socketSubscriptions[data.action] || [];
-                subscribers.forEach(function (callback) {
-                    callback(data);
-                });
-            }.bind(this));
         }
         BaseView.prototype.subscribe = function (action, callback) {
             this.socketSubscriptions[action] = this.socketSubscriptions[action] || [];
@@ -49,37 +43,23 @@ define(["require", "exports", 'react/addons', 'jquery', 'socket.io'], function (
             this.refresh();
         };
         BaseView.prototype.refresh = function () {
-            var me = this;
-            $.getJSON('/api/' + this.collectionName, function (result) {
-                me.setState({ data: result });
-            });
+            console.log('doing requery: ' + this.dataStore.path);
+            this.dataStore.query({});
+        };
+        BaseView.prototype.handleRefresh = function (data) {
+            console.log('handlingRefresh: ' + this.dataStore.path + ': ' + JSON.stringify(data));
+            this.setState({ data: data.data });
         };
         BaseView.prototype.insertBase = function (item) {
-            var me = this;
-            $.post('/api/' + this.collectionName, item, function (result) {
-                me.refresh();
-            });
+            this.dataStore.insert(item);
         };
         BaseView.prototype.update = function (data) {
             var me = this;
-            $.ajax({
-                url: '/api/' + this.collectionName + '/' + data._id,
-                type: 'PATCH',
-                data: data,
-                success: function (result) {
-                    me.refresh();
-                }
-            });
+            this.dataStore.update(data);
         };
         BaseView.prototype.remove = function (id) {
             var me = this;
-            $.ajax({
-                url: '/api/' + this.collectionName + '/' + id,
-                type: 'DELETE',
-                success: function (result) {
-                    me.refresh();
-                }
-            });
+            this.dataStore.remove(id);
         };
         return BaseView;
     })(React.Component);

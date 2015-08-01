@@ -6,7 +6,6 @@ var path = require('path');
 var bodyParser = require('body-parser');
 var Mongo = require('mongodb');
 var ObjectId = Mongo.ObjectID;
-var models = require('./app/models');
 var rmsRest = require('./rms-rest');
 var app = express();
 var server = http.createServer(app);
@@ -17,10 +16,6 @@ app.use(function (req, res, next) {
 });
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-rmsRest.buildREST(app, models.InventoryItemModel.collectionName);
-rmsRest.buildREST(app, models.VendorModel.collectionName);
-rmsRest.buildREST(app, models.ShiftModel.collectionName, { get: { date: 1 } });
-rmsRest.buildREST(app, models.KitchenOrderModel.collectionName);
 var io = rmsRest.startSocketIO(server);
 app.get('/', function (req, res) {
     res.sendFile(path.join(__dirname, './index.html'));

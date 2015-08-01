@@ -5,8 +5,8 @@ import $ = require('jquery');
 import io = require('socket.io');
 import moment = require('moment');
 
-
-var socket = io();
+import models = require('./Models');
+import dataStores = require('./DataStores');
 
 
 export class BaseViewProps {
@@ -21,9 +21,10 @@ export class BaseItemViewProps extends BaseViewProps {
 }
 
 
-export class BaseView<T, P, S> extends React.Component<P, any> {
+export class BaseView<T extends models.DbObjectModel, P, S> extends React.Component<P, any> {
     collectionName: string;
     private socketSubscriptions: any;
+    private dataStore: dataStores.SocketIODataStore<T>;
     constructor(props, collectionName: string) {
         super(props);
         this.collectionName = collectionName;
@@ -31,7 +32,17 @@ export class BaseView<T, P, S> extends React.Component<P, any> {
             data: [],
             isDisabled: false
         };
+        var doRefresh = this.refresh.bind(this);
+        this.dataStore = new dataStores.SocketIODataStore(collectionName, this.handleRefresh.bind(this), doRefresh, doRefresh, doRefresh);
+
         this.socketSubscriptions = {};
+          /*
+          socket.on('success', (message) => {
+            console.log('success! ' + JSON.stringify(message));
+          });
+          socket.on('err', (error) => {
+            console.log('Error: ' + JSON.stringify(error));
+          });
         socket.on('updated:' + this.collectionName, function(data) {
             //console.log('Updated: ' + collectionName + ': ' + JSON.stringify(data));
             this.refresh();
@@ -39,7 +50,7 @@ export class BaseView<T, P, S> extends React.Component<P, any> {
             subscribers.forEach(function(callback) {
                 callback(data);
             });
-        }.bind(this));
+        }.bind(this));*/
     }
     subscribe(action: string, callback: (any) => void) {
         this.socketSubscriptions[action] = this.socketSubscriptions[action] || [];
@@ -52,37 +63,44 @@ export class BaseView<T, P, S> extends React.Component<P, any> {
         this.refresh();
     }
     refresh() {
-        var me = this;
-        $.getJSON('/api/' + this.collectionName, function(result) {
-            me.setState({ data: result });
-        });
+        console.log('doing requery: ' + this.dataStore.path);
+        this.dataStore.query({});
+    }
+    handleRefresh(data) {
+      console.log('handlingRefresh: ' + this.dataStore.path + ': ' + JSON.stringify(data));
+      this.setState({ data: data.data });
     }
     insertBase(item) {
-        var me = this;
-        $.post('/api/' + this.collectionName, item, function(result) {
+        this.dataStore.insert(item);
+        //var me = this;
+
+        /*$.post('/api/' + this.collectionName, item, function(result) {
             me.refresh();
-        });
+        });*/
     }
     update(data) {
         var me = this;
-        $.ajax({
+        //socket.emit('update', data);
+        this.dataStore.update(data);
+        /*$.ajax({
             url: '/api/' + this.collectionName + '/' + data._id,
             type: 'PATCH',
             data: data,
             success: function(result) {
                 me.refresh();
             }
-        });
+        });*/
     }
     remove(id) {
         var me = this;
-        $.ajax({
+        this.dataStore.remove(id);
+        /*$.ajax({
             url: '/api/' + this.collectionName + '/' + id,
             type: 'DELETE',
             success: function(result) {
                 me.refresh();
             }
-        });
+        });*/
     }
 }
 

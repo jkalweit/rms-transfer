@@ -11,44 +11,10 @@ import baseViews = require('./BaseViews');
 
 
 
-export class InventoryItemView extends baseViews.BaseItemView<baseViews.BaseItemViewProps, any> {
-    render() {
-        return (
-            <div key={this.props.entity._id}>
-            <select value={this.state.entity.location} onChange={ this.handleChange.bind(this, "location") } >
-                    <option></option>
-                    <option>Dry Storage</option>
-                    <option>Silver Fridge</option>
-                    <option>Freezer 1</option>
-                    <option>Freezer 2</option>
-            </select>
-                <select value={this.state.entity.type} onChange={ this.handleChange.bind(this, "type") } >
-                    <option></option>
-                    <option>App</option>
-                    <option>Bread</option>
-                    <option>Drinks</option>
-                    <option>Dry Goods</option>
-                    <option>Meat</option>
-                    <option>Produce</option>
-                    <option>Sauce</option>
-                    <option>Supplies</option>
-                </select>
-              <input value={ this.state.entity.name } onChange={ this.handleChange.bind(this, "name") } />
-              <input value={ this.state.entity.note } onChange={ this.handleChange.bind(this, "note") } />
-              <input value={ this.state.entity.count } onChange={ this.handleChange.bind(this, "count") } />
-              <button onClick={this.update.bind(this) } disabled={!this.state.isDirty}>Update</button>
-              <button onClick={this.remove.bind(this) }>X</button>
-              { moment(this.state.entity.lastModified).format('llll') }
-            </div>
-        );
-    }
-}
-
-
 export class InventoryView extends baseViews.BaseView<models.InventoryItemModel, {}, any> {
     constructor(props) {
         super(props, models.InventoryItemModel.collectionName);
-        this.state.isDisabled = true;
+        //this.state.isDisabled = true;
     }
     insert() {
         this.insertBase({
@@ -78,6 +44,40 @@ export class InventoryView extends baseViews.BaseView<models.InventoryItemModel,
                 <button onClick={this.insert.bind(this) }>Add</button>
                 {nodes}
               </div>
+            </div>
+        );
+    }
+}
+
+
+export class InventoryItemView extends baseViews.BaseItemView<baseViews.BaseItemViewProps, any> {
+    render() {
+        return (
+            <div key={this.props.entity._id}>
+            <select value={this.state.entity.location} onChange={ this.handleChange.bind(this, "location") } >
+                    <option></option>
+                    <option>Dry Storage</option>
+                    <option>Silver Fridge</option>
+                    <option>Freezer 1</option>
+                    <option>Freezer 2</option>
+            </select>
+                <select value={this.state.entity.type} onChange={ this.handleChange.bind(this, "type") } >
+                    <option></option>
+                    <option>App</option>
+                    <option>Bread</option>
+                    <option>Drinks</option>
+                    <option>Dry Goods</option>
+                    <option>Meat</option>
+                    <option>Produce</option>
+                    <option>Sauce</option>
+                    <option>Supplies</option>
+                </select>
+              <input value={ this.state.entity.name } onChange={ this.handleChange.bind(this, "name") } />
+              <input value={ this.state.entity.note } onChange={ this.handleChange.bind(this, "note") } />
+              <input value={ this.state.entity.count } onChange={ this.handleChange.bind(this, "count") } />
+              <button onClick={this.update.bind(this) } disabled={!this.state.isDirty}>Update</button>
+              <button onClick={this.remove.bind(this) }>X</button>
+              { moment(this.state.entity.lastModified).format('llll') }
             </div>
         );
     }

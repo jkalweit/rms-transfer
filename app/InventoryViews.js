@@ -6,22 +6,10 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 define(["require", "exports", 'react/addons', 'moment', 'Models', './BaseViews'], function (require, exports, React, moment, models, baseViews) {
-    var InventoryItemView = (function (_super) {
-        __extends(InventoryItemView, _super);
-        function InventoryItemView() {
-            _super.apply(this, arguments);
-        }
-        InventoryItemView.prototype.render = function () {
-            return (React.createElement("div", {"key": this.props.entity._id}, React.createElement("select", {"value": this.state.entity.location, "onChange": this.handleChange.bind(this, "location")}, React.createElement("option", null), React.createElement("option", null, "Dry Storage"), React.createElement("option", null, "Silver Fridge"), React.createElement("option", null, "Freezer 1"), React.createElement("option", null, "Freezer 2")), React.createElement("select", {"value": this.state.entity.type, "onChange": this.handleChange.bind(this, "type")}, React.createElement("option", null), React.createElement("option", null, "App"), React.createElement("option", null, "Bread"), React.createElement("option", null, "Drinks"), React.createElement("option", null, "Dry Goods"), React.createElement("option", null, "Meat"), React.createElement("option", null, "Produce"), React.createElement("option", null, "Sauce"), React.createElement("option", null, "Supplies")), React.createElement("input", {"value": this.state.entity.name, "onChange": this.handleChange.bind(this, "name")}), React.createElement("input", {"value": this.state.entity.note, "onChange": this.handleChange.bind(this, "note")}), React.createElement("input", {"value": this.state.entity.count, "onChange": this.handleChange.bind(this, "count")}), React.createElement("button", {"onClick": this.update.bind(this), "disabled": !this.state.isDirty}, "Update"), React.createElement("button", {"onClick": this.remove.bind(this)}, "X"), moment(this.state.entity.lastModified).format('llll')));
-        };
-        return InventoryItemView;
-    })(baseViews.BaseItemView);
-    exports.InventoryItemView = InventoryItemView;
     var InventoryView = (function (_super) {
         __extends(InventoryView, _super);
         function InventoryView(props) {
             _super.call(this, props, models.InventoryItemModel.collectionName);
-            this.state.isDisabled = true;
         }
         InventoryView.prototype.insert = function () {
             this.insertBase({
@@ -42,5 +30,16 @@ define(["require", "exports", 'react/addons', 'moment', 'Models', './BaseViews']
         return InventoryView;
     })(baseViews.BaseView);
     exports.InventoryView = InventoryView;
+    var InventoryItemView = (function (_super) {
+        __extends(InventoryItemView, _super);
+        function InventoryItemView() {
+            _super.apply(this, arguments);
+        }
+        InventoryItemView.prototype.render = function () {
+            return (React.createElement("div", {"key": this.props.entity._id}, React.createElement("select", {"value": this.state.entity.location, "onChange": this.handleChange.bind(this, "location")}, React.createElement("option", null), React.createElement("option", null, "Dry Storage"), React.createElement("option", null, "Silver Fridge"), React.createElement("option", null, "Freezer 1"), React.createElement("option", null, "Freezer 2")), React.createElement("select", {"value": this.state.entity.type, "onChange": this.handleChange.bind(this, "type")}, React.createElement("option", null), React.createElement("option", null, "App"), React.createElement("option", null, "Bread"), React.createElement("option", null, "Drinks"), React.createElement("option", null, "Dry Goods"), React.createElement("option", null, "Meat"), React.createElement("option", null, "Produce"), React.createElement("option", null, "Sauce"), React.createElement("option", null, "Supplies")), React.createElement("input", {"value": this.state.entity.name, "onChange": this.handleChange.bind(this, "name")}), React.createElement("input", {"value": this.state.entity.note, "onChange": this.handleChange.bind(this, "note")}), React.createElement("input", {"value": this.state.entity.count, "onChange": this.handleChange.bind(this, "count")}), React.createElement("button", {"onClick": this.update.bind(this), "disabled": !this.state.isDirty}, "Update"), React.createElement("button", {"onClick": this.remove.bind(this)}, "X"), moment(this.state.entity.lastModified).format('llll')));
+        };
+        return InventoryItemView;
+    })(baseViews.BaseItemView);
+    exports.InventoryItemView = InventoryItemView;
 });
 //# sourceMappingURL=InventoryViews.js.map

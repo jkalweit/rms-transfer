@@ -61,7 +61,9 @@ function patch(collection, item, callback) {
                 console.error(error);
                 return;
             }
-            callback(result, item);
+            items.findOne({ "_id": _id }, function (error, current) {
+                callback(result, current);
+            });
         });
     });
 }

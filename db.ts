@@ -58,7 +58,9 @@ export function patch<T extends models.DbObjectModel>(collection: string, item: 
             },
             function(error, result) {
                 if (error) { console.error(error); return; }
-                callback(result, item);
+                items.findOne({ "_id": _id }, function(error, current) {
+                  callback(result, current);
+              });
             }
         );
     });

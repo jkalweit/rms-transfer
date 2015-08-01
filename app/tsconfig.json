@@ -7,8 +7,8 @@
 	},
 	"files" : [
 		"Models.ts",
+		"DataStores.ts",
 		"BaseViews.tsx",
-		"TestViews.tsx",
 		"VendorViews.tsx",
 		"InventoryViews.tsx",
 		"ShiftViews.tsx",
