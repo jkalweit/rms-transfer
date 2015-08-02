@@ -28,18 +28,13 @@ define(["require", "exports", 'react/addons', './DataStores'], function (require
                 data: [],
                 isDisabled: false
             };
-            var callbacks = {
-                queryCallback: this.handleRefresh.bind(this),
-                upsertCallback: this.refresh.bind(this),
-                removeCallback: this.refresh.bind(this)
-            };
-            this.dataStore = new dataStores.SocketIODataStore('inventory_items', callbacks);
-            this.socketSubscriptions = {};
+            this.dataStore = new dataStores.SocketIODataStore('inventory_items');
+            this.dataStore.on('queryed', this.handleRefresh.bind(this));
+            this.dataStore.on('inserted', this.refresh.bind(this));
+            this.dataStore.on('updated', this.refresh.bind(this));
+            this.dataStore.on('removed', this.refresh.bind(this));
+            this.dataStore.init();
         }
-        BaseView.prototype.subscribe = function (action, callback) {
-            this.socketSubscriptions[action] = this.socketSubscriptions[action] || [];
-            this.socketSubscriptions[action].push(callback);
-        };
         BaseView.prototype.toggleIsDisabled = function () {
             this.setState({ isDisabled: !this.state.isDisabled });
         };
@@ -53,11 +48,11 @@ define(["require", "exports", 'react/addons', './DataStores'], function (require
             this.setState({ data: data });
         };
         BaseView.prototype.insertBase = function (item) {
-            this.dataStore.upsert(item);
+            this.dataStore.insert(item);
         };
         BaseView.prototype.update = function (data) {
             var me = this;
-            this.dataStore.upsert(data);
+            this.dataStore.update(data);
         };
         BaseView.prototype.remove = function (id) {
             var me = this;

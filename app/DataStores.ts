@@ -33,60 +33,98 @@ export interface IDataStoreCallbacks<T extends models.DbObjectModel> {
 
 export interface IDataStore<T extends models.DbObjectModel> {
     collectionName: string;
+    on(event: string, callback: any);
     query(): void; //TODO: Make promises
-    upsert<T>(data: T): void; //TODO: Make promises
+    insert<T>(data: T): void; //TODO: Make promises
+    update<T>(data: T): void; //TODO: Make promises
     remove(id: string): void; //TODO: Make promises
+    init(): void;
+}
+
+export class DataStoreBase<T extends models.DbObjectModel> implements IDataStore<T> {
+    collectionName: string;
+    subscriptions: any;
+
+    constructor(collectionName) {
+        this.collectionName = collectionName;
+        this.subscriptions = {};
+    }
+
+    query(): void { }
+    insert<T>(data: T): void { }
+    update<T>(data: T): void { }
+    remove(id: string): void { }
+    init(): void {}
+
+    notifySubscribers(event: string, params: any) {
+        this.subscriptions[event] = this.subscriptions[event] || [];
+        this.subscriptions[event].map((subscriber) => {
+            subscriber(params);
+        });
+    }
+
+    on(event: string, callback: (data: any) => void) {
+        this.subscriptions[event] = this.subscriptions[event] || [];
+        this.subscriptions[event].push(callback);
+    }
 }
 
 
-export class LocalPersistence<T extends models.DbObjectModel> implements IDataStore<T> {
+export class LocalPersistence<T extends models.DbObjectModel> extends DataStoreBase<T> {
     collectionName: string;
-    collection: T[];
+    collection: {};
     callbacks: IDataStoreCallbacks<T>;
 
-    constructor(collectionName: string, callbacks: IDataStoreCallbacks<T> = {}) {
-        this.collectionName = collectionName;
-        this.callbacks = callbacks || {};
-        var fromStorage = localStorage.getItem(this.collectionName);
-        console.log('Read from storage: ' + fromStorage);
-        this.collection = JSON.parse(fromStorage) || {};
+    init() {
+      var fromStorage = localStorage.getItem(this.collectionName);
+      //console.log('Read from storage: ' + fromStorage);
+      this.collection = JSON.parse(fromStorage) || {};
+    }
+
+    setCollection(data: T[]) {
+      this.collection = {};
+      data.forEach((item: T) => {
+        this.collection[item._id] = item;
+      });
+      this.persist();
     }
 
     query() {
-        if (this.callbacks.queryCallback) {
-            var result: T[] = [];
-            for (var id in this.collection) {
-                result.push(this.collection[id]);
-            }
-            console.log('Queryed: ' + JSON.stringify(result));
-            this.callbacks.queryCallback(result);
-        } else {
-          console.log('No query callback, skipping query.');
+        var result: T[] = [];
+        for (var id in this.collection) {
+            result.push(this.collection[id]);
         }
+        //console.log('Queryed: ' + JSON.stringify(result));
+        this.notifySubscribers('queryed', result);
     }
 
-    upsert(data: T) {
-        if (!data._id) {
-            data._id = guid();
-        }
-        if (!data.created) {
-            data.created = new Date();
-        }
-        data.lastModified = new Date();
-
-        console.log('Upserting: ' + data);
-        this.collection[data._id] = data;
-        this.persist();
-        if(this.callbacks.upsertCallback) {
-          this.callbacks.upsertCallback(data);
-        }
+    insert(data: T) {
+        this.notifySubscribers('inserted', this.upsertHelper(data));
     }
+    update(data: T) {
+        this.notifySubscribers('updated', this.upsertHelper(data));
+    }
+
+    upsertHelper(data: T) : T {
+      if (!data._id) {
+          data._id = guid();
+      }
+      if (!data.created) {
+          data.created = new Date();
+      }
+      data.lastModified = new Date();
+
+      console.log('Upserting: ' + data);
+      this.collection[data._id] = data;
+      this.persist();
+      return data;
+    }
+
     remove(id: string) {
         delete this.collection[id];
         this.persist();
-        if(this.callbacks.removeCallback) {
-          this.callbacks.removeCallback();
-        }
+        console.log('Did remove, notifying subscribers: ' + id);
+        this.notifySubscribers('removed', id);
     }
 
     persist() {
@@ -125,16 +163,24 @@ export interface SocketIODataStoreResult<T extends models.DbObjectModel> {
 }
 
 
-export class SocketIODataStore<T extends models.DbObjectModel> implements IDataStore<T> {
+export class SocketIODataStore<T extends models.DbObjectModel> extends DataStoreBase<T> {
     guid: string;
     collectionName: string;
     callbacks: IDataStoreCallbacks<T>;
     openRequests: any = {};
     socket: SocketIO.Server;
+    subscriptions: {}
 
-    constructor(collectionName: string, callbacks: IDataStoreCallbacks<T>) {
-        this.collectionName = collectionName;
-        this.callbacks = callbacks || {};
+    local: LocalPersistence<T>;
+
+    constructor(collectionName: string) {
+        super(collectionName);
+
+        this.local = new LocalPersistence<T>(collectionName);
+        this.local.on('queryed', (data) => { console.log('Doing query2'); this.notifySubscribers('queryed', data); } );
+        this.local.on('inserted', (data) => { this.notifySubscribers('inserted', data); } );
+        this.local.on('updated', (data) => { this.notifySubscribers('updated', data); } );
+        this.local.on('removed', (data) => { this.notifySubscribers('removed', data); } );
 
         console.log('Connecting to namespace: \'/' + this.collectionName + '\'');
         this.socket = io('http://localhost:1337/' + this.collectionName);
@@ -142,52 +188,50 @@ export class SocketIODataStore<T extends models.DbObjectModel> implements IDataS
         this.socket.on('queryed', (data: SocketIODataStoreResult<T>) => {
             //console.log('queryed: ' + this.collectionName + ': ' + JSON.stringify(data));
             this.clearRequest(data.requestId);
-            if (this.callbacks.queryCallback) {
-                console.log('Calling query callBack');
-                this.callbacks.queryCallback(data.data);
-            }
+            this.local.setCollection(data.data);
+            this.notifySubscribers('queryed', data.data);
         });
 
-        this.socket.on('upserted', (data: SocketIODataStoreResult<T>) => {
+        this.socket.on('inserted', (data: SocketIODataStoreResult<T>) => {
             //console.log('upserted: ' + this.collectionName + ': ' + JSON.stringify(data));
             this.clearRequest(data.requestId);
-            if (this.callbacks.upsertCallback) {
-                console.log('Calling upserted callBack');
-                this.callbacks.upsertCallback(data.data);
-            }
+            this.local.insert(data.data);
+        });
+
+        this.socket.on('updated', (data: SocketIODataStoreResult<T>) => {
+            //console.log('upserted: ' + this.collectionName + ': ' + JSON.stringify(data));
+            this.clearRequest(data.requestId);
+            this.local.update(data.data);
         });
 
         this.socket.on('removed', (data: SocketIODataStoreResult<T>) => {
-            //console.log('Removed: ' + this.collectionName + ': ' + JSON.stringify(data));
+            console.log('Removed: ' + this.collectionName + ': ' + JSON.stringify(data));
             this.clearRequest(data.requestId);
-            if (this.callbacks.removeCallback) {
-                console.log('Calling removed callBack');
-                this.callbacks.removeCallback();
-            }
+            this.local.remove(data.data);
         });
+    }
 
-        this.socket.on('itemUpserted', (data: SocketIODataStoreResult<T>) => {
-          if (this.callbacks.upsertCallback) {
-              console.log('Calling itemUpserted callBack');
-              this.callbacks.upsertCallback(data.data);
-          }
-        });
-        this.socket.on('itemRemoved', (data: SocketIODataStoreResult<T>) => {
-          if (this.callbacks.removeCallback) {
-              console.log('Calling itemRemoved callBack');
-              this.callbacks.removeCallback();
-          }
-        });
+    init() {
+      this.local.init();
+      // refresh local cache
+      this.sendRequest('query', {});
     }
+
     query() {
-        this.sendRequest('query', {});
+        //this.sendRequest('query', {});
+        console.log('Doing query');
+        this.local.query();
     }
-    upsert(data: T) {
-        this.sendRequest('upsert', data);
+    insert(data: T) {
+        this.sendRequest('insert', data);
+    }
+    update(data: T) {
+        this.sendRequest('update', data);
     }
     remove(id) {
         this.sendRequest('remove', id);
     }
+
 
     showOpenRequests() {
         console.log("Open Requests:");
@@ -205,7 +249,7 @@ export class SocketIODataStore<T extends models.DbObjectModel> implements IDataS
         request.data = data;
 
         this.openRequests[request.id] = request;
-        console.log('Sending request: ' + this.collectionName + ': ' + JSON.stringify(request));
+        //console.log('Sending request: ' + this.collectionName + ': ' + JSON.stringify(request));
         this.socket.emit('crud', request);
         //this.showOpenRequests();
     }

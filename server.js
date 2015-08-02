@@ -31,22 +31,27 @@ collections.forEach(function (collectionName) {
                     data: persistence.query()
                 });
             }
-            else if (request.action === 'upsert') {
+            else if (request.action === 'insert') {
                 var result = {
                     requestId: request.id,
-                    data: persistence.upsert(request.data)
+                    data: persistence.insert(request.data)
                 };
-                socket.emit('upserted', result);
-                namespace.emit('itemUpserted', result.data);
+                namespace.emit('inserted', result);
+            }
+            else if (request.action === 'update') {
+                var result = {
+                    requestId: request.id,
+                    data: persistence.update(request.data)
+                };
+                namespace.emit('updated', result);
             }
             else if (request.action === 'remove') {
                 persistence.remove(request.data);
                 ;
-                socket.emit('removed', {
+                namespace.emit('removed', {
                     requestId: request.id,
-                    data: request.data._id
+                    data: request.data
                 });
-                namespace.emit('itemRemoved', result.data._id);
             }
         });
     });

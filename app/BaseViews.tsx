@@ -32,19 +32,14 @@ export class BaseView<T extends models.DbObjectModel, P, S> extends React.Compon
             data: [],
             isDisabled: false
         };
-        var callbacks = {
-          queryCallback: this.handleRefresh.bind(this),
-          upsertCallback: this.refresh.bind(this),
-          removeCallback: this.refresh.bind(this)
-        }
-        //this.dataStore = new dataStores.LocalPersistence<T>('inventory_items', callbacks);
-        this.dataStore = new dataStores.SocketIODataStore<T>('inventory_items', callbacks);
 
-        this.socketSubscriptions = {};
-    }
-    subscribe(action: string, callback: (any) => void) {
-        this.socketSubscriptions[action] = this.socketSubscriptions[action] || [];
-        this.socketSubscriptions[action].push(callback);
+        //this.dataStore = new dataStores.LocalPersistence<T>('inventory_items', callbacks);
+        this.dataStore = new dataStores.SocketIODataStore<T>('inventory_items');
+        this.dataStore.on('queryed', this.handleRefresh.bind(this));
+        this.dataStore.on('inserted', this.refresh.bind(this));
+        this.dataStore.on('updated', this.refresh.bind(this));
+        this.dataStore.on('removed', this.refresh.bind(this));
+        this.dataStore.init();
     }
     toggleIsDisabled() {
         this.setState({ isDisabled: !this.state.isDisabled });
@@ -59,36 +54,15 @@ export class BaseView<T extends models.DbObjectModel, P, S> extends React.Compon
       this.setState({ data: data });
     }
     insertBase(item) {
-        this.dataStore.upsert(item);
-        //var me = this;
-
-        /*$.post('/api/' + this.collectionName, item, function(result) {
-            me.refresh();
-        });*/
+        this.dataStore.insert(item);
     }
     update(data) {
         var me = this;
-        //socket.emit('update', data);
-        this.dataStore.upsert(data);
-        /*$.ajax({
-            url: '/api/' + this.collectionName + '/' + data._id,
-            type: 'PATCH',
-            data: data,
-            success: function(result) {
-                me.refresh();
-            }
-        });*/
+        this.dataStore.update(data);
     }
     remove(id) {
         var me = this;
         this.dataStore.remove(id);
-        /*$.ajax({
-            url: '/api/' + this.collectionName + '/' + id,
-            type: 'DELETE',
-            success: function(result) {
-                me.refresh();
-            }
-        });*/
     }
 }
 

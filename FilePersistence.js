@@ -38,7 +38,10 @@ var FilePersistence = (function () {
         }
         return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
     };
-    FilePersistence.prototype.upsert = function (data) {
+    FilePersistence.prototype.insert = function (data) {
+        return this.update(data);
+    };
+    FilePersistence.prototype.update = function (data) {
         if (!data._id) {
             data._id = this.guid();
         }

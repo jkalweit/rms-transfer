@@ -47,7 +47,10 @@ export class FilePersistence<T extends models.DbObjectModel> {
         return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
     }
 
-    upsert(data: T) : T {
+    insert(data: T) : T {
+        return this.update(data);
+    }
+    update(data: T) : T {
         if (!data._id) {
             data._id = this.guid();
         }
