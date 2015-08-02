@@ -223,12 +223,15 @@ export class SocketIODataStore<T extends models.DbObjectModel> extends DataStore
         this.local.query();
     }
     insert(data: T) {
+        this.local.insert(data);
         this.sendRequest('insert', data);
     }
     update(data: T) {
+        this.local.update(data);
         this.sendRequest('update', data);
     }
     remove(id) {
+        this.local.remove(id);
         this.sendRequest('remove', id);
     }
 

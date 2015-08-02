@@ -141,12 +141,15 @@ define(["require", "exports", 'socket.io'], function (require, exports, io) {
             this.local.query();
         };
         SocketIODataStore.prototype.insert = function (data) {
+            this.local.insert(data);
             this.sendRequest('insert', data);
         };
         SocketIODataStore.prototype.update = function (data) {
+            this.local.update(data);
             this.sendRequest('update', data);
         };
         SocketIODataStore.prototype.remove = function (id) {
+            this.local.remove(id);
             this.sendRequest('remove', id);
         };
         SocketIODataStore.prototype.showOpenRequests = function () {
