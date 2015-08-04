@@ -27,14 +27,14 @@ define(["require", "exports", 'react/addons', './DataStores'], function (require
         Button.prototype.handleClick = function (e) {
             var _this = this;
             this.setState({ isPressed: true });
-            setTimeout(function () { _this.setState({ isPressed: false }); }, 400);
+            setTimeout(function () { _this.setState({ isPressed: false }); }, 100);
             if (this.props.onClick)
                 this.props.onClick(e);
         };
         Button.prototype.render = function () {
             var _this = this;
             var classes = this.props.className || "";
-            classes = "btn " + classes + (this.state.isPressed ? ' pressed' : '');
+            classes = 'btn ' + classes + (this.state.isPressed ? ' pressed' : '');
             return (React.createElement("div", {"className": classes, "onClick": function (e) { _this.handleClick(e); }}, this.props.children));
         };
         return Button;

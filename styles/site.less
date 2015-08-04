@@ -1,5 +1,7 @@
 // out: site.css, sourcemap: true
 
+@import "colors";
+
 *,
 *:before,
 *:after {
@@ -35,27 +37,27 @@ body {
 
 
 @btn-background-color: #FFFFFF;
-@btn-color: rgba(0,0,0,0.82);
+@btn-color: @mdc-black-darker;
 .btn {
-  border: 1px solid rgba(0,0,0,0.50);
+  border: 1px solid @mdc-black-lighter;
   border-radius: 3px;
   background-color: @btn-background-color;
   color: @btn-color;
   text-align: center;
 
-  transition: all 0.2s;
+  transition: all 100ms ease-out;
   transition-property: color, background-color;
 
   &:hover {
-    background-color: #777777;
+    background-color: @mdc-black-dark;
     color: #FFFFFF;
     cursor: pointer;
-
-    .pressed {
-      background-color: #222222;
-    }
   }
 
+  &.pressed {
+    color: @mdc-black-darker;
+    background-color: @mdc-green-100;
+  }
 }
 
 
@@ -87,7 +89,7 @@ body {
   top: 0;
   left: 0;
   width: 100%;
-  background-color: #4CAF50;
+  background-color: @mdc-green-500;
   font-size: @header-font-size;
   height: @header-height;
   color: black;
@@ -116,7 +118,7 @@ body {
 
       &:hover, &:active {
         color: #FFFFFF;
-        background-color: #2E7D32;
+        background-color: @mdc-green-900;
       }
     }
   }

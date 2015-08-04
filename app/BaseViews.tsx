@@ -25,12 +25,12 @@ export class Button extends React.Component<any, any> {
     }
     handleClick(e) {
         this.setState({ isPressed: true });
-        setTimeout(() => { this.setState({ isPressed: false })}, 400); // set ms to twice the transition for in and out.
+        setTimeout(() => { this.setState({ isPressed: false })}, 100); // set ms to twice the transition for in and out.
         if (this.props.onClick) this.props.onClick(e);
     }
     render() {
         var classes = this.props.className || "";
-        classes = "btn " + classes + (this.state.isPressed ? ' pressed' : '');
+        classes = 'btn ' + classes + (this.state.isPressed ? ' pressed' : '');
         return (
             <div className={classes} onClick={(e) => { this.handleClick(e) } }>{this.props.children}</div>
         );
