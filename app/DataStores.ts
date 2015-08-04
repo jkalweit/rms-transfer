@@ -114,7 +114,7 @@ export class LocalPersistence<T extends models.DbObjectModel> extends DataStoreB
       }
       data.lastModified = new Date();
 
-      console.log('Upserting: ' + data);
+      // console.log('Upserting: ' + data);
       this.collection[data._id] = data;
       this.persist();
       return data;
@@ -123,13 +123,12 @@ export class LocalPersistence<T extends models.DbObjectModel> extends DataStoreB
     remove(id: string) {
         delete this.collection[id];
         this.persist();
-        console.log('Did remove, notifying subscribers: ' + id);
         this.notifySubscribers('removed', id);
     }
 
     persist() {
         var stringified = JSON.stringify(this.collection);
-        console.log('Persisting: ' + stringified);
+        //console.log('Persisting: ' + stringified);
         localStorage.setItem(this.collectionName, stringified);
     }
 }
@@ -177,10 +176,17 @@ export class SocketIODataStore<T extends models.DbObjectModel> extends DataStore
         super(collectionName);
 
         this.local = new LocalPersistence<T>(collectionName);
-        this.local.on('queryed', (data) => { console.log('Doing query2'); this.notifySubscribers('queryed', data); } );
+        this.local.on('queryed', (data) => { this.notifySubscribers('queryed', data); } );
         this.local.on('inserted', (data) => { this.notifySubscribers('inserted', data); } );
         this.local.on('updated', (data) => { this.notifySubscribers('updated', data); } );
         this.local.on('removed', (data) => { this.notifySubscribers('removed', data); } );
+
+        window.onbeforeunload = (e) => {
+          if(Object.keys(this.openRequests).length > 0) {
+            this.showOpenRequests();
+            return 'There are unsaved changes, exit anyway?';
+          }
+        }
 
         console.log('Connecting to namespace: \'/' + this.collectionName + '\'');
         this.socket = io('http://localhost:1337/' + this.collectionName);
@@ -205,7 +211,7 @@ export class SocketIODataStore<T extends models.DbObjectModel> extends DataStore
         });
 
         this.socket.on('removed', (data: SocketIODataStoreResult<T>) => {
-            console.log('Removed: ' + this.collectionName + ': ' + JSON.stringify(data));
+            //console.log('Removed: ' + this.collectionName + ': ' + JSON.stringify(data));
             this.clearRequest(data.requestId);
             this.local.remove(data.data);
         });
@@ -218,8 +224,6 @@ export class SocketIODataStore<T extends models.DbObjectModel> extends DataStore
     }
 
     query() {
-        //this.sendRequest('query', {});
-        console.log('Doing query');
         this.local.query();
     }
     insert(data: T) {

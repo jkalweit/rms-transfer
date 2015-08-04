@@ -81,7 +81,6 @@ define(["require", "exports", 'socket.io'], function (require, exports, io) {
                 data.created = new Date();
             }
             data.lastModified = new Date();
-            console.log('Upserting: ' + data);
             this.collection[data._id] = data;
             this.persist();
             return data;
@@ -89,12 +88,10 @@ define(["require", "exports", 'socket.io'], function (require, exports, io) {
         LocalPersistence.prototype.remove = function (id) {
             delete this.collection[id];
             this.persist();
-            console.log('Did remove, notifying subscribers: ' + id);
             this.notifySubscribers('removed', id);
         };
         LocalPersistence.prototype.persist = function () {
             var stringified = JSON.stringify(this.collection);
-            console.log('Persisting: ' + stringified);
             localStorage.setItem(this.collectionName, stringified);
         };
         return LocalPersistence;
@@ -107,10 +104,16 @@ define(["require", "exports", 'socket.io'], function (require, exports, io) {
             _super.call(this, collectionName);
             this.openRequests = {};
             this.local = new LocalPersistence(collectionName);
-            this.local.on('queryed', function (data) { console.log('Doing query2'); _this.notifySubscribers('queryed', data); });
+            this.local.on('queryed', function (data) { _this.notifySubscribers('queryed', data); });
             this.local.on('inserted', function (data) { _this.notifySubscribers('inserted', data); });
             this.local.on('updated', function (data) { _this.notifySubscribers('updated', data); });
             this.local.on('removed', function (data) { _this.notifySubscribers('removed', data); });
+            window.onbeforeunload = function (e) {
+                if (Object.keys(_this.openRequests).length > 0) {
+                    _this.showOpenRequests();
+                    return 'There are unsaved changes, exit anyway?';
+                }
+            };
             console.log('Connecting to namespace: \'/' + this.collectionName + '\'');
             this.socket = io('http://localhost:1337/' + this.collectionName);
             this.socket.on('queryed', function (data) {
@@ -127,7 +130,6 @@ define(["require", "exports", 'socket.io'], function (require, exports, io) {
                 _this.local.update(data.data);
             });
             this.socket.on('removed', function (data) {
-                console.log('Removed: ' + _this.collectionName + ': ' + JSON.stringify(data));
                 _this.clearRequest(data.requestId);
                 _this.local.remove(data.data);
             });
@@ -137,7 +139,6 @@ define(["require", "exports", 'socket.io'], function (require, exports, io) {
             this.sendRequest('query', {});
         };
         SocketIODataStore.prototype.query = function () {
-            console.log('Doing query');
             this.local.query();
         };
         SocketIODataStore.prototype.insert = function (data) {

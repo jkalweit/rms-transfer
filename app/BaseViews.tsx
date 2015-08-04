@@ -9,15 +9,45 @@ import models = require('./Models');
 import dataStores = require('./DataStores');
 
 
+export class Utils {
+    static FormatDollars(value, precision: number = 2): string {
+        var val = Number(value);
+        return '$' + val.toFixed(2)
+    }
+}
+
+export class Button extends React.Component<any, any> {
+    constructor(props) {
+        super(props);
+        this.state = {
+          isPressed: false
+        }
+    }
+    handleClick(e) {
+        this.setState({ isPressed: true });
+        setTimeout(() => { this.setState({ isPressed: false })}, 400); // set ms to twice the transition for in and out.
+        if (this.props.onClick) this.props.onClick(e);
+    }
+    render() {
+        var classes = this.props.className || "";
+        classes = "btn " + classes + (this.state.isPressed ? ' pressed' : '');
+        return (
+            <div className={classes} onClick={(e) => { this.handleClick(e) } }>{this.props.children}</div>
+        );
+    }
+
+}
+
+
 export class BaseViewProps {
     public key: string;
     public entity: any;
 }
 
 
-export class BaseItemViewProps extends BaseViewProps {
-    public onUpdate: any;
-    public onRemove: any;
+export interface BaseItemViewProps extends BaseViewProps {
+    onUpdate?: any;
+    onRemove?: any;
 }
 
 
@@ -34,7 +64,7 @@ export class BaseView<T extends models.DbObjectModel, P, S> extends React.Compon
         };
 
         //this.dataStore = new dataStores.LocalPersistence<T>('inventory_items', callbacks);
-        this.dataStore = new dataStores.SocketIODataStore<T>('inventory_items');
+        this.dataStore = new dataStores.SocketIODataStore<T>(collectionName);
         this.dataStore.on('queryed', this.handleRefresh.bind(this));
         this.dataStore.on('inserted', this.refresh.bind(this));
         this.dataStore.on('updated', this.refresh.bind(this));
@@ -51,7 +81,7 @@ export class BaseView<T extends models.DbObjectModel, P, S> extends React.Compon
         this.dataStore.query();
     }
     handleRefresh(data) {
-      this.setState({ data: data });
+        this.setState({ data: data });
     }
     insertBase(item) {
         this.dataStore.insert(item);
@@ -103,5 +133,134 @@ export class BaseItemView<P extends BaseItemViewProps, S> extends React.Componen
                 isDirty: true
             });
         }
+    }
+    render() {
+        return (
+            <div>
+            { (this.props as any).children }
+            </div>
+        );
+    }
+}
+
+export class SimpleItemEditView extends React.Component<any, any> {
+    private collectionName: string;
+    constructor(props) {
+        super(props);
+        var entityCopy = {};
+        if (props.entity) {
+            entityCopy = JSON.parse(JSON.stringify(props.entity));
+        }
+        this.state = {
+            entity: entityCopy,
+            isDirty: false,
+            isDisabled: false
+        };
+    }
+    toggleIsDisabled() {
+        this.setState({ isDisabled: !this.state.isDisabled });
+    }
+    componentWillReceiveProps(nextProps) {
+        var entityCopy = {};
+        if (nextProps.entity) {
+            entityCopy = JSON.parse(JSON.stringify(nextProps.entity));
+        }
+        this.setState({
+            entity: entityCopy,
+            isDirty: false
+        });
+    }
+    handleChange(fieldName, event) {
+        var newEntity = this.state.entity;
+        if (newEntity[fieldName] !== event.target.value) {
+            newEntity[fieldName] = event.target.value;
+            this.setState({
+                entity: newEntity,
+                isDirty: true
+            });
+        }
+    }
+    reset() {
+        this.setState({
+            entity: JSON.parse(JSON.stringify(this.props.entity)),
+            isDirty: false
+        });
+    }
+    save() {
+        this.props.onSave(this.state.entity);
+    }
+    cancel() {
+        this.props.onCancel();
+    }
+    remove() {
+        this.props.onRemove();
+    }
+    render() {
+        return (
+            <div>
+            { (this.props as any).children }
+            </div>
+        );
+    }
+}
+
+
+
+
+export class ModalView extends React.Component<any, any> {
+    constructor(props, collectionName: string) {
+        super(props);
+        this.state = {
+            isVisible: false
+        };
+    }
+    show() {
+        this.setState({
+            isVisible: true
+        });
+
+        if (this.props.onShown) this.props.onShown()
+    }
+    hide() {
+        this.setState({
+            isVisible: false
+        });
+    }
+    toggle() {
+        this.setState({
+            isVisible: !this.state.isVisible
+        }, () => {
+            if (this.state.isVisible && this.props.onShown) { this.props.onShown(); }
+        });
+    }
+    render() {
+        var backdropStyle = {
+            display: this.state.isVisible ? 'block' : 'none',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            zIndex: 10,
+            backgroundColor: 'rgba(0,0,0,0.5)'
+        };
+        var innerStyle = {
+            borderRadius: '5px',
+            backgroundColor: '#FFFFFF',
+            color: '#000000',
+            minWidth: '400px',
+            maxWidth: '800px',
+            minHeigth: '400px',
+            width: '80%',
+            margin: '20px auto',
+            padding: '20px'
+        };
+        return (
+            <div style={backdropStyle}>
+              <div style={innerStyle}>
+                { this.props.children }
+              </div>
+            </div>
+        );
     }
 }

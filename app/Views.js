@@ -5,14 +5,14 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-define(["require", "exports", 'react/addons', './InventoryViews'], function (require, exports, React, inventoryViews) {
+define(["require", "exports", 'react/addons', './MenuViews'], function (require, exports, React, menuViews) {
     var MainView = (function (_super) {
         __extends(MainView, _super);
         function MainView() {
             _super.apply(this, arguments);
         }
         MainView.prototype.render = function () {
-            return (React.createElement("div", null, React.createElement("h1", null, "RMS"), React.createElement(inventoryViews.InventoryView, null)));
+            return (React.createElement("div", null, React.createElement("div", {"className": "sticky-header"}, React.createElement("ul", null, React.createElement("li", null, React.createElement("a", {"href": "#"}, "RMS")), React.createElement("li", null, React.createElement("a", {"href": "#menu"}, "Menu")))), React.createElement(menuViews.MenuCategoriesView, null)));
         };
         return MainView;
     })(React.Component);

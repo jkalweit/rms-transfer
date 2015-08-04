@@ -5,6 +5,7 @@ var http = require('http');
 var path = require('path');
 var bodyParser = require('body-parser');
 var socketio = require('socket.io');
+var models = require('./app/models');
 var fp = require('./FilePersistence');
 var app = express();
 var server = http.createServer(app);
@@ -16,15 +17,15 @@ app.use(function (req, res, next) {
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 var io = socketio(server);
-var collections = ['inventory_items'];
-collections.forEach(function (collectionName) {
-    var persistence = new fp.FilePersistence(collectionName);
-    console.log('Setting up namespace: \'/' + collectionName + '\'');
-    var namespace = io.of('/' + collectionName);
+var collections = [models.InventoryItemModel, models.MenuCategoryModel];
+collections.forEach(function (type) {
+    var persistence = new fp.FilePersistence(type.collectionName);
+    console.log('Setting up namespace: \'/' + type.collectionName + '\'');
+    var namespace = io.of('/' + type.collectionName);
     namespace.on('connection', function (socket) {
-        console.log('someone connected to ' + collectionName);
+        console.log('someone connected to ' + type.collectionName);
         socket.on('crud', function (request) {
-            console.log('Do action: ' + collectionName + ': ' + JSON.stringify(request));
+            console.log('Do action: ' + type.collectionName + ': ' + JSON.stringify(request));
             if (request.action === 'query') {
                 socket.emit('queryed', {
                     requestId: request.id,
@@ -60,6 +61,7 @@ app.get('/', function (req, res) {
     res.sendFile(path.join(__dirname, './index.html'));
 });
 app.use('/app', express.static(path.join(__dirname, './app')));
+app.use('/styles', express.static(path.join(__dirname, './styles')));
 app.use('/bower_components', express.static(path.join(__dirname, './bower_components')));
 app.use('/content', express.static(path.join(__dirname, './content')));
 var port = process.env.PORT || 1337;

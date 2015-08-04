@@ -12,17 +12,21 @@ import vendorViews = require('./vendorViews');
 import inventoryViews = require('./InventoryViews');
 import shiftViews = require('./shiftViews');
 import kitchenViews = require('./KitchenViews');
-
-
-
+import menuViews = require('./MenuViews');
 
 export class MainView extends React.Component<{}, any> {
     render() {
         return (
             <div>
-          <h1>RMS</h1>
-          <inventoryViews.InventoryView></inventoryViews.InventoryView>
-          { /* <vendorViews.VendorsView></vendorViews.VendorsView>
+            <div className="sticky-header">
+              <ul>
+                <li><a href="#">RMS</a></li>
+                <li><a href="#menu">Menu</a></li>
+              </ul>
+            </div>
+          <menuViews.MenuCategoriesView></menuViews.MenuCategoriesView>
+          { /* <inventoryViews.InventoryView></inventoryViews.InventoryView>
+            <vendorViews.VendorsView></vendorViews.VendorsView>
         <shiftViews.ShiftsView></shiftViews.ShiftsView>
       <kitchenViews.KitchenOrdersView></kitchenViews.KitchenOrdersView> */ }
             </div>

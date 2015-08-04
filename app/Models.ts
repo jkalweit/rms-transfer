@@ -68,3 +68,10 @@ export class KitchenOrderModel extends DbObjectModel {
     completedAt: Date;
     static collectionName: string = 'kitchen_orders';
 }
+
+export class MenuCategoryModel extends DbObjectModel {
+    type: string;
+    name: string;
+    note: string;
+    static collectionName: string = 'menu_categories';
+}

@@ -17,6 +17,7 @@
     "jquery": "2.1.4",
     "moment": "~2.10.6",
     "react": "0.13.3",
-    "requirejs": "~2.1.19"
+    "requirejs": "~2.1.19",
+    "components-font-awesome": "~4.4.0"
   }
 }

@@ -35,16 +35,16 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 var io = socketio(server);
 
-var collections = ['inventory_items'];
+var collections = [models.InventoryItemModel, models.MenuCategoryModel];
 
-collections.forEach((collectionName) => {
-    var persistence = new fp.FilePersistence(collectionName);
-    console.log('Setting up namespace: \'/' + collectionName + '\'');
-    var namespace = io.of('/' + collectionName);
+collections.forEach((type) => {
+    var persistence = new fp.FilePersistence(type.collectionName);
+    console.log('Setting up namespace: \'/' + type.collectionName + '\'');
+    var namespace = io.of('/' + type.collectionName);
     namespace.on('connection', (socket) => {
-        console.log('someone connected to ' + collectionName);
+        console.log('someone connected to ' + type.collectionName);
         socket.on('crud', (request) => {
-            console.log('Do action: ' + collectionName + ': ' + JSON.stringify(request));
+            console.log('Do action: ' + type.collectionName + ': ' + JSON.stringify(request));
             if (request.action === 'query') {
                 // socket.emit to only send to requester
                 socket.emit('queryed', {
@@ -115,8 +115,8 @@ app.get('/', function(req, res) {
     res.sendFile(path.join(__dirname, './index.html'));
 });
 
-
 app.use('/app', express.static(path.join(__dirname, './app')));
+app.use('/styles', express.static(path.join(__dirname, './styles')));
 app.use('/bower_components', express.static(path.join(__dirname, './bower_components')));
 app.use('/content', express.static(path.join(__dirname, './content')));
 

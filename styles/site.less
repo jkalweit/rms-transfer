@@ -1,0 +1,133 @@
+// out: site.css, sourcemap: true
+
+*,
+*:before,
+*:after {
+  -webkit-box-sizing: border-box;
+     -moz-box-sizing: border-box;
+          box-sizing: border-box;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+}
+
+.row {
+  clear: both;
+  overflow: auto;
+}
+
+.col {
+  float: left;
+  padding: 3px;
+  margin: 3px;
+}
+.generate-cols(10);
+.generate-cols(@n, @i: 1) when (@i =< @n) {
+  .col-@{i} {
+    .col;
+    width: (@i * 25px);
+  }
+  .generate-cols(@n, (@i + 1));
+}
+
+
+
+
+@btn-background-color: #FFFFFF;
+@btn-color: rgba(0,0,0,0.82);
+.btn {
+  border: 1px solid rgba(0,0,0,0.50);
+  border-radius: 3px;
+  background-color: @btn-background-color;
+  color: @btn-color;
+  text-align: center;
+
+  transition: all 0.2s;
+  transition-property: color, background-color;
+
+  &:hover {
+    background-color: #777777;
+    color: #FFFFFF;
+    cursor: pointer;
+
+    .pressed {
+      background-color: #222222;
+    }
+  }
+
+}
+
+
+.defaultList-enter {
+  opacity: 0.01;
+  transition: opacity .2s ease-in;
+}
+
+.defaultList-enter.defaultList-enter-active {
+  opacity: 1;
+}
+
+.defaultList-leave {
+  opacity: 1;
+  transition: width .2s ease-in, height .2s ease-in;
+}
+
+.defaultList-leave.defaultList-leave-active {
+  width: 0px;
+  height: 0px;
+}
+
+
+@header-font-size: 20px;
+@header-height: 50px;
+.sticky-header {
+  position: fixed;
+  z-index: 10;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: #4CAF50;
+  font-size: @header-font-size;
+  height: @header-height;
+  color: black;
+
+  ul {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+  }
+
+  li {
+    float: left;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+
+    a {
+      display: block;
+      min-width: 80px;
+      height: 100%;
+      text-decoration: none;
+      color: inherit;
+      padding: ((@header-height - @header-font-size) / 2) 10px;
+      margin: 0;
+
+      &:hover, &:active {
+        color: #FFFFFF;
+        background-color: #2E7D32;
+      }
+    }
+  }
+}
+
+#content {
+  margin-top: @header-height + 20;
+}
+
+.text-right {
+  text-align: right;
+}
+
+@import "kitchen";

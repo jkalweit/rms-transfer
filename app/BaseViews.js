@@ -5,20 +5,47 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 define(["require", "exports", 'react/addons', './DataStores'], function (require, exports, React, dataStores) {
+    var Utils = (function () {
+        function Utils() {
+        }
+        Utils.FormatDollars = function (value, precision) {
+            if (precision === void 0) { precision = 2; }
+            var val = Number(value);
+            return '$' + val.toFixed(2);
+        };
+        return Utils;
+    })();
+    exports.Utils = Utils;
+    var Button = (function (_super) {
+        __extends(Button, _super);
+        function Button(props) {
+            _super.call(this, props);
+            this.state = {
+                isPressed: false
+            };
+        }
+        Button.prototype.handleClick = function (e) {
+            var _this = this;
+            this.setState({ isPressed: true });
+            setTimeout(function () { _this.setState({ isPressed: false }); }, 400);
+            if (this.props.onClick)
+                this.props.onClick(e);
+        };
+        Button.prototype.render = function () {
+            var _this = this;
+            var classes = this.props.className || "";
+            classes = "btn " + classes + (this.state.isPressed ? ' pressed' : '');
+            return (React.createElement("div", {"className": classes, "onClick": function (e) { _this.handleClick(e); }}, this.props.children));
+        };
+        return Button;
+    })(React.Component);
+    exports.Button = Button;
     var BaseViewProps = (function () {
         function BaseViewProps() {
         }
         return BaseViewProps;
     })();
     exports.BaseViewProps = BaseViewProps;
-    var BaseItemViewProps = (function (_super) {
-        __extends(BaseItemViewProps, _super);
-        function BaseItemViewProps() {
-            _super.apply(this, arguments);
-        }
-        return BaseItemViewProps;
-    })(BaseViewProps);
-    exports.BaseItemViewProps = BaseItemViewProps;
     var BaseView = (function (_super) {
         __extends(BaseView, _super);
         function BaseView(props, collectionName) {
@@ -28,7 +55,7 @@ define(["require", "exports", 'react/addons', './DataStores'], function (require
                 data: [],
                 isDisabled: false
             };
-            this.dataStore = new dataStores.SocketIODataStore('inventory_items');
+            this.dataStore = new dataStores.SocketIODataStore(collectionName);
             this.dataStore.on('queryed', this.handleRefresh.bind(this));
             this.dataStore.on('inserted', this.refresh.bind(this));
             this.dataStore.on('updated', this.refresh.bind(this));
@@ -99,8 +126,126 @@ define(["require", "exports", 'react/addons', './DataStores'], function (require
                 });
             }
         };
+        BaseItemView.prototype.render = function () {
+            return (React.createElement("div", null, this.props.children));
+        };
         return BaseItemView;
     })(React.Component);
     exports.BaseItemView = BaseItemView;
+    var SimpleItemEditView = (function (_super) {
+        __extends(SimpleItemEditView, _super);
+        function SimpleItemEditView(props) {
+            _super.call(this, props);
+            var entityCopy = {};
+            if (props.entity) {
+                entityCopy = JSON.parse(JSON.stringify(props.entity));
+            }
+            this.state = {
+                entity: entityCopy,
+                isDirty: false,
+                isDisabled: false
+            };
+        }
+        SimpleItemEditView.prototype.toggleIsDisabled = function () {
+            this.setState({ isDisabled: !this.state.isDisabled });
+        };
+        SimpleItemEditView.prototype.componentWillReceiveProps = function (nextProps) {
+            var entityCopy = {};
+            if (nextProps.entity) {
+                entityCopy = JSON.parse(JSON.stringify(nextProps.entity));
+            }
+            this.setState({
+                entity: entityCopy,
+                isDirty: false
+            });
+        };
+        SimpleItemEditView.prototype.handleChange = function (fieldName, event) {
+            var newEntity = this.state.entity;
+            if (newEntity[fieldName] !== event.target.value) {
+                newEntity[fieldName] = event.target.value;
+                this.setState({
+                    entity: newEntity,
+                    isDirty: true
+                });
+            }
+        };
+        SimpleItemEditView.prototype.reset = function () {
+            this.setState({
+                entity: JSON.parse(JSON.stringify(this.props.entity)),
+                isDirty: false
+            });
+        };
+        SimpleItemEditView.prototype.save = function () {
+            this.props.onSave(this.state.entity);
+        };
+        SimpleItemEditView.prototype.cancel = function () {
+            this.props.onCancel();
+        };
+        SimpleItemEditView.prototype.remove = function () {
+            this.props.onRemove();
+        };
+        SimpleItemEditView.prototype.render = function () {
+            return (React.createElement("div", null, this.props.children));
+        };
+        return SimpleItemEditView;
+    })(React.Component);
+    exports.SimpleItemEditView = SimpleItemEditView;
+    var ModalView = (function (_super) {
+        __extends(ModalView, _super);
+        function ModalView(props, collectionName) {
+            _super.call(this, props);
+            this.state = {
+                isVisible: false
+            };
+        }
+        ModalView.prototype.show = function () {
+            this.setState({
+                isVisible: true
+            });
+            if (this.props.onShown)
+                this.props.onShown();
+        };
+        ModalView.prototype.hide = function () {
+            this.setState({
+                isVisible: false
+            });
+        };
+        ModalView.prototype.toggle = function () {
+            var _this = this;
+            this.setState({
+                isVisible: !this.state.isVisible
+            }, function () {
+                if (_this.state.isVisible && _this.props.onShown) {
+                    _this.props.onShown();
+                }
+            });
+        };
+        ModalView.prototype.render = function () {
+            var backdropStyle = {
+                display: this.state.isVisible ? 'block' : 'none',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                zIndex: 10,
+                backgroundColor: 'rgba(0,0,0,0.5)'
+            };
+            var innerStyle = {
+                borderRadius: '5px',
+                backgroundColor: '#FFFFFF',
+                color: '#000000',
+                minWidth: '400px',
+                maxWidth: '800px',
+                minHeigth: '400px',
+                width: '80%',
+                margin: '20px auto',
+                padding: '20px'
+            };
+            return (React.createElement("div", {"style": backdropStyle}, React.createElement("div", {"style": innerStyle}, this.props.children)));
+        };
+        return ModalView;
+    })(React.Component);
+    exports.ModalView = ModalView;
 });
 //# sourceMappingURL=BaseViews.js.map

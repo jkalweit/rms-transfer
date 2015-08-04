@@ -11,6 +11,7 @@
 		"BaseViews.tsx",
 		"VendorViews.tsx",
 		"InventoryViews.tsx",
+		"MenuViews.tsx",
 		"ShiftViews.tsx",
 		"KitchenViews.tsx",
 		"Views.tsx"
