@@ -190,6 +190,23 @@ define(["require", "exports", 'react/addons', './DataStores'], function (require
         return SimpleItemEditView;
     })(React.Component);
     exports.SimpleItemEditView = SimpleItemEditView;
+    var SimpleConfirmView = (function (_super) {
+        __extends(SimpleConfirmView, _super);
+        function SimpleConfirmView() {
+            _super.apply(this, arguments);
+        }
+        SimpleConfirmView.prototype.doCallback = function (name) {
+            if (this.props[name])
+                this.props[name]();
+        };
+        SimpleConfirmView.prototype.render = function () {
+            var _this = this;
+            var hide = { float: 'right', display: this.props.onRemove ? 'block' : 'none' };
+            return (React.createElement("div", null, React.createElement("button", {"onClick": function () { _this.doCallback('onCancel'); }}, "Cancel2"), React.createElement("button", {"onClick": function () { _this.doCallback('onSave'); }, "disabled": !this.props.isDirty}, "Save"), React.createElement("button", {"onClick": function () { _this.doCallback('onRemove'); }, "style": hide}, "Delete")));
+        };
+        return SimpleConfirmView;
+    })(React.Component);
+    exports.SimpleConfirmView = SimpleConfirmView;
     var ModalView = (function (_super) {
         __extends(ModalView, _super);
         function ModalView(props, collectionName) {

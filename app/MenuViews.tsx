@@ -6,10 +6,10 @@ import io = require('socket.io');
 import moment = require('moment');
 import models = require('Models');
 
-import baseViews = require('./BaseViews');
+import bv = require('./BaseViews');
 
 
-export class MenuCategoriesView extends baseViews.BaseView<models.MenuCategoryModel, {}, any> {
+export class MenuCategoriesView extends bv.BaseView<models.MenuCategoryModel, {}, any> {
     constructor(props) {
         super(props, models.MenuCategoryModel.collectionName);
         //this.state.isDisabled = true;
@@ -36,14 +36,14 @@ export class MenuCategoriesView extends baseViews.BaseView<models.MenuCategoryMo
               <div onClick={ this.toggleIsDisabled.bind(this) }>
                 <h2>Menu Categories</h2>
               </div>
-              <baseViews.ModalView ref="addCategoryModal" onShown={() => { (this.refs as any).addCategoryView.doFocus(); } }>
+              <bv.ModalView ref="addCategoryModal" onShown={() => { (this.refs as any).addCategoryView.doFocus(); } }>
                 <MenuCategoryEditView ref="addCategoryView" entity={this.state.entity}
                 onSave={(entity) => { this.insert(entity); (this.refs as any).addCategoryModal.toggle(); } }
                 onCancel={ () => { (this.refs as any).addCategoryModal.toggle(); } }>
                 </MenuCategoryEditView>
-              </baseViews.ModalView>
+              </bv.ModalView>
               <div className="row" style={style}>
-                <baseViews.Button className="col-4" onClick={() => { this.addCategory() } }><span className="fa fa-plus-circle fa-fw"></span> Category</baseViews.Button>
+                <bv.Button className="col-4" onClick={() => { this.addCategory() } }><span className="fa fa-plus-circle fa-fw"></span> Category</bv.Button>
                 <br />
                 {nodes}
               </div>
@@ -52,7 +52,7 @@ export class MenuCategoriesView extends baseViews.BaseView<models.MenuCategoryMo
     }
 }
 
-export class MenuCategoryDetailsView extends baseViews.BaseItemView<baseViews.BaseItemViewProps, any> {
+export class MenuCategoryDetailsView extends bv.BaseItemView<bv.BaseItemViewProps, any> {
 
     insertMenuItem(item) {
         var newEntity = this.state.entity;
@@ -99,22 +99,22 @@ export class MenuCategoryDetailsView extends baseViews.BaseItemView<baseViews.Ba
 
         return (
             <div className="row" style={style} key={this.state.entity._id}>
-              <div className="col-6 btn" onClick={() => { (this.refs as any).editCategoryView.reset(); (this.refs as any).editCategoryModal.show(); } }>{ this.state.entity.name }</div>
-              <div className="col-3 btn" onClick={() => { (this.refs as any).addMenuItemModal.toggle(); } }><span className="fa fa-plus-circle fa-fw"></span> Item</div>
+              <bv.Button className="col-6" onClick={() => {(this.refs as any).editCategoryView.reset(); (this.refs as any).editCategoryModal.show(); }}>{ this.state.entity.name }</bv.Button>
+              <bv.Button className="col-3" onClick={() => {(this.refs as any).addMenuItemModal.toggle(); }}><span className="fa fa-plus-circle fa-fw"></span> Item</bv.Button>
 
-              <baseViews.ModalView ref="addMenuItemModal" onShown={() => { (this.refs as any).editItemView.doFocus(); } }>
+              <bv.ModalView ref="addMenuItemModal" onShown={() => { (this.refs as any).editItemView.doFocus(); } }>
                 <MenuItemEditView ref="editItemView" entity={{}}
                 onSave={(entity) => { this.insertMenuItem(entity); (this.refs as any).addMenuItemModal.hide(); } }
                 onCancel={() => { (this.refs as any).addMenuItemModal.toggle(); } }>
                 </MenuItemEditView>
-              </baseViews.ModalView>
-              <baseViews.ModalView ref="editCategoryModal" onShown={() => { (this.refs as any).editCategoryView.doFocus(); } }>
+              </bv.ModalView>
+              <bv.ModalView ref="editCategoryModal" onShown={() => { (this.refs as any).editCategoryView.doFocus(); } }>
                 <MenuCategoryEditView ref="editCategoryView" entity={this.state.entity}
                 onSave={(entity) => { this.props.onUpdate(entity); (this.refs as any).editCategoryModal.toggle(); } }
                 onCancel={ () => { (this.refs as any).editCategoryModal.toggle(); } }
                 onRemove={ () => { this.remove(); } }>
                 </MenuCategoryEditView>
-              </baseViews.ModalView>
+              </bv.ModalView>
 
               { nodes }
             </div>
@@ -122,7 +122,7 @@ export class MenuCategoryDetailsView extends baseViews.BaseItemView<baseViews.Ba
     }
 }
 
-export class MenuCategoryEditView extends baseViews.SimpleItemEditView {
+export class MenuCategoryEditView extends bv.SimpleItemEditView {
     doFocus() {
         var input = React.findDOMNode(this.refs['type']) as any;
         input.focus();
@@ -143,37 +143,38 @@ export class MenuCategoryEditView extends baseViews.SimpleItemEditView {
           </p>
           <p>Name: <input ref="name" value={ this.state.entity.name } onChange={ this.handleChange.bind(this, "name") } /></p>
           <p>Note: <input value={ this.state.entity.note } onChange={ this.handleChange.bind(this, "note") } /></p>
-          <div>
-            <button onClick={() => { this.cancel() } }>Cancel</button>
-            <button onClick={this.save.bind(this) } disabled={!this.state.isDirty}>Save</button>
-            <div className="btn" onClick={() => { this.remove() } } style={hide}>Delete</div>
-          </div>
+          <bv.SimpleConfirmView
+            onCancel={() => { this.cancel() }}
+            onSave={() => { this.save() }}
+            onRemove={() => { this.remove() }}
+            isDirty={this.state.isDirty}
+            ></bv.SimpleConfirmView>
             </div>
         );
     }
 }
 
 
-export class MenuItemView extends baseViews.BaseItemView<baseViews.BaseItemViewProps, any> {
+export class MenuItemView extends bv.BaseItemView<bv.BaseItemViewProps, any> {
     render() {
         return (
             <div className="row" key={this.props.entity._id}>
               <div className="col-1"></div>
               <div className="col-8 btn" onClick={() => { (this.refs as any).editModal.toggle(); } }>{ this.props.entity.name }</div>
-              <div className="col-4 text-right">{ baseViews.Utils.FormatDollars(this.props.entity.price) }</div>
-              <baseViews.ModalView ref="editModal" onShown={() => { (this.refs as any).editView.doFocus(); } }>
+              <div className="col-4 text-right">{ bv.Utils.FormatDollars(this.props.entity.price) }</div>
+              <bv.ModalView ref="editModal" onShown={() => { (this.refs as any).editView.doFocus(); } }>
                 <MenuItemEditView ref="editView" entity={this.state.entity}
                 onSave={(entity) => { this.props.onUpdate(entity); (this.refs as any).editModal.toggle(); } }
                 onCancel={ () => { (this.refs as any).editModal.toggle(); } }
                 onRemove={ () => { this.remove(); } }>
                 </MenuItemEditView>
-              </baseViews.ModalView>
+              </bv.ModalView>
             </div>
         );
     }
 }
 
-export class MenuItemEditView extends baseViews.SimpleItemEditView {
+export class MenuItemEditView extends bv.SimpleItemEditView {
     doFocus() {
         var input = React.findDOMNode(this.refs['name']) as any;
         input.focus();

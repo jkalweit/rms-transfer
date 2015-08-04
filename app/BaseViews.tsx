@@ -204,6 +204,24 @@ export class SimpleItemEditView extends React.Component<any, any> {
     }
 }
 
+export class SimpleConfirmView extends React.Component<any, any> {
+   doCallback(name) {
+     if(this.props[name]) this.props[name]();
+   }
+   render() {
+
+     var hide = { float: 'right', display: this.props.onRemove ? 'block' : 'none' };
+
+     return (
+       <div>
+         <button onClick={() => { this.doCallback('onCancel'); }}>Cancel2</button>
+         <button onClick={() => { this.doCallback('onSave'); }} disabled={!this.props.isDirty}>Save</button>
+         <button onClick={() => { this.doCallback('onRemove'); }}  style={hide}>Delete</button>
+       </div>
+      );
+   }
+}
+
 
 
 

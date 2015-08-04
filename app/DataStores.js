@@ -114,8 +114,9 @@ define(["require", "exports", 'socket.io'], function (require, exports, io) {
                     return 'There are unsaved changes, exit anyway?';
                 }
             };
-            console.log('Connecting to namespace: \'/' + this.collectionName + '\'');
-            this.socket = io('http://localhost:1337/' + this.collectionName);
+            var socketHost = 'http://' + location.host + '/' + this.collectionName;
+            console.log('Connecting to namespace: \'' + socketHost + '\'');
+            this.socket = io(socketHost);
             this.socket.on('queryed', function (data) {
                 _this.clearRequest(data.requestId);
                 _this.local.setCollection(data.data);

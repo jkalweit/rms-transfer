@@ -188,8 +188,9 @@ export class SocketIODataStore<T extends models.DbObjectModel> extends DataStore
           }
         }
 
-        console.log('Connecting to namespace: \'/' + this.collectionName + '\'');
-        this.socket = io('http://localhost:1337/' + this.collectionName);
+        var socketHost = 'http://' + location.host + '/' + this.collectionName;
+        console.log('Connecting to namespace: \'' + socketHost + '\'');
+        this.socket = io(socketHost);
 
         this.socket.on('queryed', (data: SocketIODataStoreResult<T>) => {
             //console.log('queryed: ' + this.collectionName + ': ' + JSON.stringify(data));

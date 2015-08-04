@@ -141,6 +141,8 @@ body {
   color: inherit;
   padding: 15px 10px;
   margin: 0;
+  transition: all 100ms ease-out;
+  transition-property: color, background-color;
 }
 .sticky-header li a:hover,
 .sticky-header li a:active {
