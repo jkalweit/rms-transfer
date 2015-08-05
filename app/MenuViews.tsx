@@ -8,33 +8,91 @@ import models = require('Models');
 import bv = require('./BaseViews');
 
 
-export interface MenuCategoriesViewState {
+export interface MenuViewState {
+    categories?: models.MenuCategoryModel[];
     selectedCategory?: models.MenuCategoryModel;
+    selectedItem?: models.MenuItemModel;
 }
 
-export class MenuCategoriesView extends bv.BaseView<models.MenuCategoryModel, {}, MenuCategoriesViewState> {
+export class MenuView extends React.Component<{}, MenuViewState> {
     constructor(props) {
-        super(props, models.MenuCategoryModel.collectionName);
+        super(props);
+
+        this.state = {
+            categories: [
+                {
+                    _id: '0',
+                    type: 'Food',
+                    name: 'Dinner Entrees',
+                    note: '',
+                    menuItems: [
+                        {
+                            _id: '0', name: '14oz Ribeye', note: '', price: 20.00
+                        },
+                        {
+                            _id: '1', name: '10oz NT Strip', note: '', price: 18.00
+                        }
+                    ]
+                },
+                {
+                    _id: '1',
+                    type: 'Food',
+                    name: 'Sides',
+                    note: '',
+                    menuItems: [
+                        {
+                            _id: '0', name: 'FF', note: '', price: 3.00
+                        },
+                        {
+                            _id: '1', name: 'SPFF', note: '', price: 3.00
+                        }
+                    ]
+                }
+            ]
+        };
     }
+    render() {
+        return (
+            <div className="menu">
+              <MenuCategoriesView
+              categories={this.state.categories}
+              selectedCategory={this.state.selectedCategory}
+              onCategorySelected={(category: models.MenuCategoryModel) => { this.setState({ selectedCategory: category, selectedItem: null }) } }></MenuCategoriesView>
+              <MenuItemsView
+              menuItems={ this.state.selectedCategory ? this.state.selectedCategory.menuItems : [] }
+              selectedItem={ this.state.selectedItem }
+              onItemSelected={(item: models.MenuItemModel) => { this.setState({ selectedItem: item }); }}></MenuItemsView>
+            </div>
+        );
+    }
+}
+
+
+
+export interface MenuCategoriesViewProps {
+    categories: models.MenuCategoryModel[];
+    selectedCategory: models.MenuCategoryModel;
+    onCategorySelected: (category: models.MenuCategoryModel) => void;
+}
+
+export class MenuCategoriesView extends React.Component<MenuCategoriesViewProps, {}> {
     insert(entity: models.MenuCategoryModel) {
-        this.insertBase(entity);
-        this.setState({ selectedCategory: entity });
+        //this.insertBase(entity);
+        //this.props.onCategorySelected(entity);
     }
     addCategory() {
         (this.refs as any).addCategoryModal.toggle();
     }
     render() {
-        console.log('Selected Cat: ' + JSON.stringify(this.state.selectedCategory));
-        var nodes = this.state.data.map((entity: models.MenuCategoryModel) => {
-            var className = (this.state.selectedCategory && this.state.selectedCategory._id === entity._id) ? 'active' : '';
-            return (<li key={entity._id} className={className} onClick={() => { this.setState({ selectedCategory: entity }); } }>{ entity.name }</li>);
+        var nodes = this.props.categories.map((category: models.MenuCategoryModel) => {
+            var className = (this.props.selectedCategory && this.props.selectedCategory._id === category._id) ? 'active' : '';
+            return (<li key={category._id} className={className} onClick={() => { this.props.onCategorySelected(category); }}>{ category.name }</li>);
         });
 
-
         return (
-            <div className="menu">
+            <div className="menu-categories">
               <bv.ModalView ref="addCategoryModal" onShown={() => { (this.refs as any).addCategoryView.doFocus(); } }>
-                <MenuCategoryEditView ref="addCategoryView" entity={this.state.entity}
+                <MenuCategoryEditView ref="addCategoryView"
                 onSave={(entity) => { this.insert(entity); (this.refs as any).addCategoryModal.toggle(); } }
                 onCancel={ () => { (this.refs as any).addCategoryModal.toggle(); } }>
                 </MenuCategoryEditView>
@@ -50,6 +108,31 @@ export class MenuCategoriesView extends bv.BaseView<models.MenuCategoryModel, {}
         );
     }
 }
+
+
+export interface MenuItemsViewProps {
+    menuItems: models.MenuItemModel[];
+    selectedItem: models.MenuItemModel;
+    onItemSelected: (item: models.MenuItemModel) => void;
+}
+export class MenuItemsView extends React.Component<MenuItemsViewProps, any> {
+    render() {
+      var nodes = this.props.menuItems.map((item: models.MenuItemModel) => {
+          var className = (this.props.selectedItem && this.props.selectedItem._id === item._id) ? 'active' : '';
+          return (<li key={item._id} className={className} onClick={() => { this.props.onItemSelected(item); }}>{ item.name }</li>);
+      });
+
+        return (
+            <div className="menu-items">
+              <h3>Menu Items</h3>
+              <ul>
+                { nodes }
+              </ul>
+            </div>
+        );
+    }
+}
+
 
 export class MenuCategoryDetailsView extends bv.BaseItemView<bv.BaseItemViewProps, any> {
 

@@ -3,50 +3,61 @@
 @import "colors";
 
 .menu {
-  background-color: @mdc-blue-100;
+  background-color: @mdc-blue-50;
   float: left;
-  width: 200px;
+  width: 400px;
   height: 100%;
 
-  .h {
-    width: 100%;
-    color: #FFFFFF;
-    margin: 0;
-    background-color: @mdc-blue-500;
-    padding: 10px;
-    box-shadow: 0px 2px rgba(0, 0, 0, 0.5);
-  }
+  .menu-categories, .menu-items {
+    background-color: @mdc-blue-100;
+    float: left;
+    width: 200px;
+    height: 100%;
+    border-right: 1px solid @mdc-black-lighter;
 
-  .generate-h(5);
-  .generate-h(@n, @i: 1) when (@i =< @n) {
-    h@{i} {
-      .h;
-    }
-    .generate-h(@n, (@i + 1));
-  }
-
-  ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-
-    li {
+    .h {
       width: 100%;
-      min-height: 30px;
-      background-color: @mdc-blue-200;
+      color: #FFFFFF;
       margin: 0;
+      background-color: @mdc-blue-500;
       padding: 10px;
       border-bottom: 1px solid @mdc-black-lighter;
+    }
 
-      .btn {
-        margin: 0;
+    .generate-h(5);
+    .generate-h(@n, @i: 1) when (@i =< @n) {
+      h@{i} {
+        .h;
       }
+      .generate-h(@n, (@i + 1));
+    }
 
-      &.active {
-          color: #FFFFFF;
-          background-color: @mdc-blue-500;
+    ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+
+      li {
+        width: 100%;
+        min-height: 30px;
+        background-color: @mdc-blue-200;
+        margin: 0;
+        padding: 10px;
+        border-bottom: 1px solid @mdc-black-lighter;
+
+        .btn {
+          margin: 0;
+        }
+
+        &.active {
+            color: #FFFFFF;
+            background-color: @mdc-blue-500;
+        }
       }
     }
   }
 
+  .menu-items {
+    background-color: @mdc-blue-50;
+  }
 }

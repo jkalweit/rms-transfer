@@ -33,9 +33,10 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 
+
 var io = socketio(server);
 
-var collections = [models.InventoryItemModel, models.MenuCategoryModel];
+/*var collections = [models.InventoryItemModel, models.MenuCategoryModel];
 
 collections.forEach((type) => {
     var persistence = new fp.FilePersistence(type.collectionName);
@@ -73,7 +74,7 @@ collections.forEach((type) => {
 
         });
     });
-});
+});*/
 
 
 /*rmsRest.buildREST<models.InventoryItemModel>(app, models.InventoryItemModel.collectionName);

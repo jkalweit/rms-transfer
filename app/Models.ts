@@ -69,13 +69,20 @@ export class KitchenOrderModel extends DbObjectModel {
     static collectionName: string = 'kitchen_orders';
 }
 
-export class MenuCategoryModel extends DbObjectModel {
-    type: string;
-    name: string;
-    note: string;
-    static collectionName: string = 'menu_categories';
+export interface MenuCategoryModel {
+    _id?: string;
+    type?: string;
+    name?: string;
+    note?: string;
+    menuItems: MenuItemModel[];
 }
 
+export interface MenuItemModel {
+  _id?: string;
+  name?: string;
+  note?: string;
+  price?: number;
+}
 
 export class CustomerModel extends DbObjectModel {
   name: string;

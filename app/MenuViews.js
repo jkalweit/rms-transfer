@@ -5,31 +5,88 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-define(["require", "exports", 'react/addons', 'Models', './BaseViews'], function (require, exports, React, models, bv) {
+define(["require", "exports", 'react/addons', './BaseViews'], function (require, exports, React, bv) {
+    var MenuView = (function (_super) {
+        __extends(MenuView, _super);
+        function MenuView(props) {
+            _super.call(this, props);
+            this.state = {
+                categories: [
+                    {
+                        _id: '0',
+                        type: 'Food',
+                        name: 'Dinner Entrees',
+                        note: '',
+                        menuItems: [
+                            {
+                                _id: '0', name: '14oz Ribeye', note: '', price: 20.00
+                            },
+                            {
+                                _id: '1', name: '10oz NT Strip', note: '', price: 18.00
+                            }
+                        ]
+                    },
+                    {
+                        _id: '1',
+                        type: 'Food',
+                        name: 'Sides',
+                        note: '',
+                        menuItems: [
+                            {
+                                _id: '0', name: 'FF', note: '', price: 3.00
+                            },
+                            {
+                                _id: '1', name: 'SPFF', note: '', price: 3.00
+                            }
+                        ]
+                    }
+                ]
+            };
+        }
+        MenuView.prototype.render = function () {
+            var _this = this;
+            return (React.createElement("div", {"className": "menu"}, React.createElement(MenuCategoriesView, {"categories": this.state.categories, "selectedCategory": this.state.selectedCategory, "onCategorySelected": function (category) { _this.setState({ selectedCategory: category, selectedItem: null }); }}), React.createElement(MenuItemsView, {"menuItems": this.state.selectedCategory ? this.state.selectedCategory.menuItems : [], "selectedItem": this.state.selectedItem, "onItemSelected": function (item) { _this.setState({ selectedItem: item }); }})));
+        };
+        return MenuView;
+    })(React.Component);
+    exports.MenuView = MenuView;
     var MenuCategoriesView = (function (_super) {
         __extends(MenuCategoriesView, _super);
-        function MenuCategoriesView(props) {
-            _super.call(this, props, models.MenuCategoryModel.collectionName);
+        function MenuCategoriesView() {
+            _super.apply(this, arguments);
         }
         MenuCategoriesView.prototype.insert = function (entity) {
-            this.insertBase(entity);
-            this.setState({ selectedCategory: entity });
         };
         MenuCategoriesView.prototype.addCategory = function () {
             this.refs.addCategoryModal.toggle();
         };
         MenuCategoriesView.prototype.render = function () {
             var _this = this;
-            console.log('Selected Cat: ' + JSON.stringify(this.state.selectedCategory));
-            var nodes = this.state.data.map(function (entity) {
-                var className = (_this.state.selectedCategory && _this.state.selectedCategory._id === entity._id) ? 'active' : '';
-                return (React.createElement("li", {"key": entity._id, "className": className, "onClick": function () { _this.setState({ selectedCategory: entity }); }}, entity.name));
+            var nodes = this.props.categories.map(function (category) {
+                var className = (_this.props.selectedCategory && _this.props.selectedCategory._id === category._id) ? 'active' : '';
+                return (React.createElement("li", {"key": category._id, "className": className, "onClick": function () { _this.props.onCategorySelected(category); }}, category.name));
             });
-            return (React.createElement("div", {"className": "menu"}, React.createElement(bv.ModalView, {"ref": "addCategoryModal", "onShown": function () { _this.refs.addCategoryView.doFocus(); }}, React.createElement(MenuCategoryEditView, {"ref": "addCategoryView", "entity": this.state.entity, "onSave": function (entity) { _this.insert(entity); _this.refs.addCategoryModal.toggle(); }, "onCancel": function () { _this.refs.addCategoryModal.toggle(); }})), React.createElement("h3", null, "Menu Categories"), React.createElement("ul", null, React.createElement("li", null, React.createElement(bv.Button, {"className": "btn-add", "onClick": function () { _this.addCategory(); }}, React.createElement("span", {"className": "fa fa-plus-circle"}), "Category")), nodes)));
+            return (React.createElement("div", {"className": "menu-categories"}, React.createElement(bv.ModalView, {"ref": "addCategoryModal", "onShown": function () { _this.refs.addCategoryView.doFocus(); }}, React.createElement(MenuCategoryEditView, {"ref": "addCategoryView", "onSave": function (entity) { _this.insert(entity); _this.refs.addCategoryModal.toggle(); }, "onCancel": function () { _this.refs.addCategoryModal.toggle(); }})), React.createElement("h3", null, "Menu Categories"), React.createElement("ul", null, React.createElement("li", null, React.createElement(bv.Button, {"className": "btn-add", "onClick": function () { _this.addCategory(); }}, React.createElement("span", {"className": "fa fa-plus-circle"}), "Category")), nodes)));
         };
         return MenuCategoriesView;
-    })(bv.BaseView);
+    })(React.Component);
     exports.MenuCategoriesView = MenuCategoriesView;
+    var MenuItemsView = (function (_super) {
+        __extends(MenuItemsView, _super);
+        function MenuItemsView() {
+            _super.apply(this, arguments);
+        }
+        MenuItemsView.prototype.render = function () {
+            var _this = this;
+            var nodes = this.props.menuItems.map(function (item) {
+                var className = (_this.props.selectedItem && _this.props.selectedItem._id === item._id) ? 'active' : '';
+                return (React.createElement("li", {"key": item._id, "className": className, "onClick": function () { _this.props.onItemSelected(item); }}, item.name));
+            });
+            return (React.createElement("div", {"className": "menu-items"}, React.createElement("h3", null, "Menu Items"), React.createElement("ul", null, nodes)));
+        };
+        return MenuItemsView;
+    })(React.Component);
+    exports.MenuItemsView = MenuItemsView;
     var MenuCategoryDetailsView = (function (_super) {
         __extends(MenuCategoryDetailsView, _super);
         function MenuCategoryDetailsView() {

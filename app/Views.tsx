@@ -93,7 +93,7 @@ export class MainView extends React.Component<{}, any> {
               <p>Use the navigation above to select a location.</p>
             </NavigationView>
             <NavigationView hash="#reconciliation"><recViews.ReconciliationView></recViews.ReconciliationView></NavigationView>
-            <NavigationView hash="#menu"><menuViews.MenuCategoriesView></menuViews.MenuCategoriesView></NavigationView>
+            <NavigationView hash="#menu"><menuViews.MenuView></menuViews.MenuView></NavigationView>
             <NavigationView hash="#kitchen"><h1>The kitchen!</h1></NavigationView>
           { /*
             <kitchenViews.KitchenOrdersView></kitchenViews.KitchenOrdersView>

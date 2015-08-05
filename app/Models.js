@@ -72,15 +72,6 @@ define(["require", "exports", 'moment'], function (require, exports, moment) {
         return KitchenOrderModel;
     })(DbObjectModel);
     exports.KitchenOrderModel = KitchenOrderModel;
-    var MenuCategoryModel = (function (_super) {
-        __extends(MenuCategoryModel, _super);
-        function MenuCategoryModel() {
-            _super.apply(this, arguments);
-        }
-        MenuCategoryModel.collectionName = 'menu_categories';
-        return MenuCategoryModel;
-    })(DbObjectModel);
-    exports.MenuCategoryModel = MenuCategoryModel;
     var CustomerModel = (function (_super) {
         __extends(CustomerModel, _super);
         function CustomerModel() {
