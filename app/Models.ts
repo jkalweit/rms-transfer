@@ -75,3 +75,22 @@ export class MenuCategoryModel extends DbObjectModel {
     note: string;
     static collectionName: string = 'menu_categories';
 }
+
+
+export class CustomerModel extends DbObjectModel {
+  name: string;
+}
+
+export class TicketModel extends DbObjectModel {
+  name: string;
+  customers: CustomerModel[];
+}
+
+export class ReconciliationModel extends DbObjectModel {
+  name: string = 'Dinner';
+  date: Date;
+  tickets: TicketModel[];
+  static getCollectionName(rec: ReconciliationModel) : string {
+    return 'reconciliations' + rec.date.toUTCString();
+  }
+}

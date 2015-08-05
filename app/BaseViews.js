@@ -35,7 +35,7 @@ define(["require", "exports", 'react/addons', './DataStores'], function (require
             var _this = this;
             var classes = this.props.className || "";
             classes = 'btn ' + classes + (this.state.isPressed ? ' pressed' : '');
-            return (React.createElement("div", {"className": classes, "onClick": function (e) { _this.handleClick(e); }}, this.props.children));
+            return (React.createElement("button", {"className": classes, "style": this.props.style, "onClick": function (e) { _this.handleClick(e); }}, this.props.children));
         };
         return Button;
     })(React.Component);
@@ -201,8 +201,12 @@ define(["require", "exports", 'react/addons', './DataStores'], function (require
         };
         SimpleConfirmView.prototype.render = function () {
             var _this = this;
-            var hide = { float: 'right', display: this.props.onRemove ? 'block' : 'none' };
-            return (React.createElement("div", null, React.createElement("button", {"onClick": function () { _this.doCallback('onCancel'); }}, "Cancel2"), React.createElement("button", {"onClick": function () { _this.doCallback('onSave'); }, "disabled": !this.props.isDirty}, "Save"), React.createElement("button", {"onClick": function () { _this.doCallback('onRemove'); }, "style": hide}, "Delete")));
+            var hide = { display: this.props.onRemove ? 'block' : 'none' };
+            var style = {
+                marginTop: '20px',
+                minHeight: '40px'
+            };
+            return (React.createElement("div", {"style": style}, React.createElement(Button, {"className": "col-4 btn-confirm", "onClick": function () { _this.doCallback('onSave'); }, "disabled": !this.props.isDirty}, "Save"), React.createElement(Button, {"className": "col-4 btn-cancel", "onClick": function () { _this.doCallback('onCancel'); }}, "Cancel"), React.createElement(Button, {"className": "col-4 btn-delete", "onClick": function () { _this.doCallback('onRemove'); }, "style": hide}, "Delete")));
         };
         return SimpleConfirmView;
     })(React.Component);
@@ -215,12 +219,16 @@ define(["require", "exports", 'react/addons', './DataStores'], function (require
                 isVisible: false
             };
         }
-        ModalView.prototype.show = function () {
+        ModalView.prototype.show = function (callback) {
+            var _this = this;
             this.setState({
                 isVisible: true
+            }, function () {
+                if (callback)
+                    callback();
+                if (_this.props.onShown)
+                    _this.props.onShown();
             });
-            if (this.props.onShown)
-                this.props.onShown();
         };
         ModalView.prototype.hide = function () {
             this.setState({
@@ -253,11 +261,10 @@ define(["require", "exports", 'react/addons', './DataStores'], function (require
                 backgroundColor: '#FFFFFF',
                 color: '#000000',
                 minWidth: '400px',
-                maxWidth: '800px',
-                minHeigth: '400px',
+                maxWidth: '600px',
                 width: '80%',
                 margin: '20px auto',
-                padding: '20px'
+                padding: '40px'
             };
             return (React.createElement("div", {"style": backdropStyle}, React.createElement("div", {"style": innerStyle}, this.props.children)));
         };

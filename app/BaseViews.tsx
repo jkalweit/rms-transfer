@@ -32,7 +32,7 @@ export class Button extends React.Component<any, any> {
         var classes = this.props.className || "";
         classes = 'btn ' + classes + (this.state.isPressed ? ' pressed' : '');
         return (
-            <div className={classes} onClick={(e) => { this.handleClick(e) } }>{this.props.children}</div>
+            <button className={classes} style={this.props.style} onClick={(e) => { this.handleClick(e) } }>{this.props.children}</button>
         );
     }
 
@@ -210,13 +210,17 @@ export class SimpleConfirmView extends React.Component<any, any> {
    }
    render() {
 
-     var hide = { float: 'right', display: this.props.onRemove ? 'block' : 'none' };
+     var hide = { display: this.props.onRemove ? 'block' : 'none' };
+     var style = {
+       marginTop: '20px',
+       minHeight: '40px'
+     };
 
      return (
-       <div>
-         <button onClick={() => { this.doCallback('onCancel'); }}>Cancel2</button>
-         <button onClick={() => { this.doCallback('onSave'); }} disabled={!this.props.isDirty}>Save</button>
-         <button onClick={() => { this.doCallback('onRemove'); }}  style={hide}>Delete</button>
+       <div style={style}>
+         <Button className="col-4 btn-confirm" onClick={() => { this.doCallback('onSave'); }} disabled={!this.props.isDirty}>Save</Button>
+         <Button className="col-4 btn-cancel" onClick={() => { this.doCallback('onCancel'); }}>Cancel</Button>
+         <Button className="col-4 btn-delete" onClick={() => { this.doCallback('onRemove'); }} style={hide}>Delete</Button>
        </div>
       );
    }
@@ -232,12 +236,13 @@ export class ModalView extends React.Component<any, any> {
             isVisible: false
         };
     }
-    show() {
+    show(callback: () => void) {
         this.setState({
             isVisible: true
-        });
-
-        if (this.props.onShown) this.props.onShown()
+        }, () => {
+          if(callback) callback();
+          if (this.props.onShown) this.props.onShown()
+          });
     }
     hide() {
         this.setState({
@@ -267,11 +272,10 @@ export class ModalView extends React.Component<any, any> {
             backgroundColor: '#FFFFFF',
             color: '#000000',
             minWidth: '400px',
-            maxWidth: '800px',
-            minHeigth: '400px',
+            maxWidth: '600px',
             width: '80%',
             margin: '20px auto',
-            padding: '20px'
+            padding: '40px'
         };
         return (
             <div style={backdropStyle}>

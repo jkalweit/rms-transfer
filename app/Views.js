@@ -5,14 +5,67 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-define(["require", "exports", 'react/addons', './MenuViews'], function (require, exports, React, menuViews) {
+define(["require", "exports", 'react/addons', './MenuViews', './ReconciliationViews'], function (require, exports, React, menuViews, recViews) {
+    var NavigationBase = (function (_super) {
+        __extends(NavigationBase, _super);
+        function NavigationBase(props) {
+            var _this = this;
+            _super.call(this, props);
+            this.state = { isSelected: this.compareHash() };
+            window.addEventListener('hashchange', function () {
+                _this.setState({ isSelected: _this.compareHash() });
+            });
+        }
+        NavigationBase.prototype.compareHash = function () {
+            var normalizedHash = (location.hash || '').toLowerCase();
+            if (normalizedHash == '')
+                normalizedHash = '#';
+            return normalizedHash == this.props.hash;
+        };
+        NavigationBase.prototype.render = function () {
+            return (React.createElement("div", null, "Navigator Base is an abstract class. You must implement your own render()."));
+        };
+        return NavigationBase;
+    })(React.Component);
+    exports.NavigationBase = NavigationBase;
+    var NavigationView = (function (_super) {
+        __extends(NavigationView, _super);
+        function NavigationView() {
+            _super.apply(this, arguments);
+        }
+        NavigationView.prototype.render = function () {
+            var style = {};
+            if (!this.state.isSelected) {
+                style = {
+                    height: '0',
+                    overflow: 'auto'
+                };
+            }
+            return (React.createElement("div", {"className": "navigation-view", "style": style}, this.props.children));
+        };
+        return NavigationView;
+    })(NavigationBase);
+    exports.NavigationView = NavigationView;
+    var NavigationItem = (function (_super) {
+        __extends(NavigationItem, _super);
+        function NavigationItem() {
+            _super.apply(this, arguments);
+        }
+        NavigationItem.prototype.render = function () {
+            var className = this.state.isSelected ? 'active' : '';
+            return (React.createElement("a", {"className": className, "href": this.props.hash}, this.props.children));
+        };
+        return NavigationItem;
+    })(NavigationView);
+    exports.NavigationItem = NavigationItem;
     var MainView = (function (_super) {
         __extends(MainView, _super);
         function MainView() {
             _super.apply(this, arguments);
         }
         MainView.prototype.render = function () {
-            return (React.createElement("div", null, React.createElement("div", {"className": "sticky-header"}, React.createElement("ul", null, React.createElement("li", null, React.createElement("a", {"href": "#"}, "RMS")), React.createElement("li", null, React.createElement("a", {"href": "#menu"}, "Menu")))), React.createElement(menuViews.MenuCategoriesView, null)));
+            console.log('Hash: ' + location.hash);
+            return (React.createElement("div", null, React.createElement("div", {"className": "sticky-header"}, React.createElement("ul", null, React.createElement("li", null, React.createElement(NavigationItem, {"hash": "#"}, React.createElement("span", {"className": "col-2"}, "RMS"))), React.createElement("li", null, React.createElement(NavigationItem, {"hash": "#reconciliation"}, React.createElement("span", {"className": "col-6"}, "Reconciliation"))), React.createElement("li", null, React.createElement(NavigationItem, {"hash": "#menu"}, React.createElement("span", {"className": "col-5"}, "Menu"))), React.createElement("li", null, React.createElement(NavigationItem, {"hash": "#kitchen"}, React.createElement("span", {"className": "col-5"}, "Kitchen"))))), React.createElement(NavigationView, {"hash": "#"}, React.createElement("h1", null, "Welcome to RMS"), React.createElement("p", null, "There will be a dashboard here later."), React.createElement("p", null, "Use the navigation above to select a location.")), React.createElement(NavigationView, {"hash": "#reconciliation"}, React.createElement(recViews.ReconciliationView, null)), React.createElement(NavigationView, {"hash": "#menu"}, React.createElement(menuViews.MenuCategoriesView, null)), React.createElement(NavigationView, {"hash": "#kitchen"}, React.createElement("h1", null, "The kitchen!"))));
         };
         return MainView;
     })(React.Component);

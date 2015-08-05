@@ -81,5 +81,33 @@ define(["require", "exports", 'moment'], function (require, exports, moment) {
         return MenuCategoryModel;
     })(DbObjectModel);
     exports.MenuCategoryModel = MenuCategoryModel;
+    var CustomerModel = (function (_super) {
+        __extends(CustomerModel, _super);
+        function CustomerModel() {
+            _super.apply(this, arguments);
+        }
+        return CustomerModel;
+    })(DbObjectModel);
+    exports.CustomerModel = CustomerModel;
+    var TicketModel = (function (_super) {
+        __extends(TicketModel, _super);
+        function TicketModel() {
+            _super.apply(this, arguments);
+        }
+        return TicketModel;
+    })(DbObjectModel);
+    exports.TicketModel = TicketModel;
+    var ReconciliationModel = (function (_super) {
+        __extends(ReconciliationModel, _super);
+        function ReconciliationModel() {
+            _super.apply(this, arguments);
+            this.name = 'Dinner';
+        }
+        ReconciliationModel.getCollectionName = function (rec) {
+            return 'reconciliations' + rec.date.toUTCString();
+        };
+        return ReconciliationModel;
+    })(DbObjectModel);
+    exports.ReconciliationModel = ReconciliationModel;
 });
 //# sourceMappingURL=models.js.map
