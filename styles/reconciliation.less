@@ -11,19 +11,13 @@
   height: 100%;
   background-color: @mdc-yellow-100;
 
-
-  .ticket-list {
-    background-color: @mdc-purple-100;
-    width: 200px;
-    height: 100%;
-    float: left;
-
+  .ticket, .ticket-list {
     .h {
       width: 100%;
       color: #FFFFFF;
       margin: 0;
       background-color: @mdc-purple-500;
-      padding: 10px 10px;
+      padding: 10px;
       box-shadow: 0px 2px rgba(0, 0, 0, 0.5);
     }
 
@@ -34,6 +28,22 @@
       }
       .generate-h(@n, (@i + 1));
     }
+  }
+
+  @ticket-margin: 10px;
+  .ticket {
+    background-color: #FFFFFF;
+    margin: @ticket-margin;
+    width: 300px - (2 * @ticket-margin);
+    min-height: 300px;
+    float: left;
+  }
+
+  .ticket-list {
+    background-color: @mdc-purple-100;
+    width: 200px;
+    height: 100%;
+    float: left;
 
     .name-filter {
       width: 100%;
@@ -53,6 +63,11 @@
         margin: 0;
         padding: 10px;
         border-bottom: 1px solid @mdc-black-lighter;
+
+        &.active {
+            color: #FFFFFF;
+            background-color: @mdc-purple-500;
+        }
       }
     }
 

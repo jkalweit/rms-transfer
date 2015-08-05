@@ -31,8 +31,7 @@ export class MenuCategoriesView extends bv.BaseView<models.MenuCategoryModel, {}
         };
 
         return (
-            <div>
-              <h2>Menu Categories</h2>
+            <div className="menu">
               <bv.ModalView ref="addCategoryModal" onShown={() => { (this.refs as any).addCategoryView.doFocus(); } }>
                 <MenuCategoryEditView ref="addCategoryView" entity={this.state.entity}
                 onSave={(entity) => { this.insert(entity); (this.refs as any).addCategoryModal.toggle(); } }
