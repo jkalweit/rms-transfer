@@ -34,13 +34,10 @@ define(["require", "exports", 'react/addons', './MenuViews', './ReconciliationVi
             _super.apply(this, arguments);
         }
         NavigationView.prototype.render = function () {
-            var style = {};
-            if (!this.state.isSelected) {
-                style = {
-                    height: '0',
-                    overflow: 'auto'
-                };
-            }
+            var style = {
+                zIndex: this.state.isSelected ? 1 : 0,
+                opacity: this.state.isSelected ? 1 : 0
+            };
             return (React.createElement("div", {"className": "navigation-view", "style": style}, this.props.children));
         };
         return NavigationView;

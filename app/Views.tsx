@@ -39,13 +39,16 @@ export class NavigationBase extends React.Component<NavigatorProps, any> {
 
 export class NavigationView extends NavigationBase {
     render() {
-        var style = {};
-        if (!this.state.isSelected) {
+        var style = {
+          zIndex: this.state.isSelected ? 1 : 0,
+          opacity: this.state.isSelected ? 1 : 0
+        };
+        /*if (!this.state.isSelected) {
             style = {
                 height: '0',
                 overflow: 'auto'
             };
-        }
+        }*/
 
         return (
             <div className="navigation-view" style={style}>
@@ -74,6 +77,7 @@ export class MainView extends React.Component<{}, any> {
         console.log('Hash: ' + location.hash);
 
         return (
+
             <div>
             <div className="sticky-header">
               <ul>

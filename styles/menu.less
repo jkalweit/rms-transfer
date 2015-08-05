@@ -5,7 +5,7 @@
 .menu {
   background-color: @mdc-blue-100;
   float: left;
-  width: 300px;
+  width: 200px;
   height: 100%;
 
   .h {
@@ -24,4 +24,29 @@
     }
     .generate-h(@n, (@i + 1));
   }
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+
+    li {
+      width: 100%;
+      min-height: 30px;
+      background-color: @mdc-blue-200;
+      margin: 0;
+      padding: 10px;
+      border-bottom: 1px solid @mdc-black-lighter;
+
+      .btn {
+        margin: 0;
+      }
+
+      &.active {
+          color: #FFFFFF;
+          background-color: @mdc-blue-500;
+      }
+    }
+  }
+
 }

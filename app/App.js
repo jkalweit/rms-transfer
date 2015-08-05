@@ -1,7 +1,5 @@
 require.config({
   paths: {
-    "jquery": "/bower_components/jquery/dist/jquery.min",
-    "react": "/bower_components/react/react",
     "react/addons": "/bower_components/react/react-with-addons",
     "moment": "/bower_components/moment/moment",
     "socket.io": "/socket.io/socket.io"

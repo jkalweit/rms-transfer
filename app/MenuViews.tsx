@@ -8,27 +8,28 @@ import models = require('Models');
 import bv = require('./BaseViews');
 
 
-export class MenuCategoriesView extends bv.BaseView<models.MenuCategoryModel, {}, any> {
+export interface MenuCategoriesViewState {
+    selectedCategory?: models.MenuCategoryModel;
+}
+
+export class MenuCategoriesView extends bv.BaseView<models.MenuCategoryModel, {}, MenuCategoriesViewState> {
     constructor(props) {
         super(props, models.MenuCategoryModel.collectionName);
-        //this.state.isDisabled = true;
     }
-    insert(entity) {
+    insert(entity: models.MenuCategoryModel) {
         this.insertBase(entity);
+        this.setState({ selectedCategory: entity });
     }
     addCategory() {
         (this.refs as any).addCategoryModal.toggle();
     }
     render() {
-        var nodes = this.state.data.map((entity) => {
-            return (
-                <MenuCategoryDetailsView key={entity._id} entity={entity} onUpdate={this.update.bind(this) } onRemove={this.remove.bind(this) }></MenuCategoryDetailsView>
-            );
+        console.log('Selected Cat: ' + JSON.stringify(this.state.selectedCategory));
+        var nodes = this.state.data.map((entity: models.MenuCategoryModel) => {
+            var className = (this.state.selectedCategory && this.state.selectedCategory._id === entity._id) ? 'active' : '';
+            return (<li key={entity._id} className={className} onClick={() => { this.setState({ selectedCategory: entity }); } }>{ entity.name }</li>);
         });
 
-        var style = {
-            display: this.state.isDisabled ? 'none' : 'block'
-        };
 
         return (
             <div className="menu">
@@ -38,11 +39,13 @@ export class MenuCategoriesView extends bv.BaseView<models.MenuCategoryModel, {}
                 onCancel={ () => { (this.refs as any).addCategoryModal.toggle(); } }>
                 </MenuCategoryEditView>
               </bv.ModalView>
-              <div className="row" style={style}>
-                <bv.Button className="col-4 btn-add" onClick={() => { this.addCategory() } }><span className="fa fa-plus-circle fa-fw"></span> Category</bv.Button>
-                <br />
+              <h3>Menu Categories</h3>
+              <ul>
+                <li>
+                  <bv.Button className="btn-add" onClick={() => { this.addCategory() } }><span className="fa fa-plus-circle"></span> Category</bv.Button>
+                </li>
                 {nodes}
-              </div>
+              </ul>
             </div>
         );
     }
@@ -86,16 +89,20 @@ export class MenuCategoryDetailsView extends bv.BaseItemView<bv.BaseItemViewProp
         var nodes = [];
         for (var id in this.state.entity.menuItems) {
             var entity = this.state.entity.menuItems[id];
-            nodes.push(
+            /*nodes.push(
                 <MenuItemView key={entity._id} entity={entity} onUpdate={this.updateMenuItem.bind(this) } onRemove={this.removeMenuItem.bind(this) }></MenuItemView>
+            );*/
+
+            nodes.push(
+                <li key={entity._id}>{entity.name}</li>
             );
         }
 
-        var style = { marginTop: '20px' }
-
         return (
-            <div className="row" style={style} key={this.state.entity._id}>
-              <bv.Button className="col-6" onClick={() => {(this.refs as any).editCategoryView.reset(); (this.refs as any).editCategoryModal.show(); }}>{ this.state.entity.name }</bv.Button>
+            <li key={this.state.entity._id}>
+              {this.state.entity.name}
+            { /*
+              <bv.Button className="col-1" onClick={() => {(this.refs as any).editCategoryView.reset(); (this.refs as any).editCategoryModal.show(); }}><span className="fa fa-pencil"></span></bv.Button>
               <bv.Button className="col-2 btn-add" onClick={() => {(this.refs as any).addMenuItemModal.toggle(); }}><span className="fa fa-plus-circle fa-fw"></span></bv.Button>
 
               <bv.ModalView ref="addMenuItemModal" onShown={() => { (this.refs as any).editItemView.doFocus(); } }>
@@ -104,6 +111,7 @@ export class MenuCategoryDetailsView extends bv.BaseItemView<bv.BaseItemViewProp
                 onCancel={() => { (this.refs as any).addMenuItemModal.toggle(); } }>
                 </MenuItemEditView>
               </bv.ModalView>
+
               <bv.ModalView ref="editCategoryModal" onShown={() => { (this.refs as any).editCategoryView.doFocus(); } }>
                 <MenuCategoryEditView ref="editCategoryView" entity={this.state.entity}
                 onSave={(entity) => { this.props.onUpdate(entity); (this.refs as any).editCategoryModal.toggle(); } }
@@ -113,7 +121,10 @@ export class MenuCategoryDetailsView extends bv.BaseItemView<bv.BaseItemViewProp
               </bv.ModalView>
 
               { nodes }
-            </div>
+              */
+            }
+
+            </li>
         );
     }
 }
@@ -128,21 +139,22 @@ export class MenuCategoryEditView extends bv.SimpleItemEditView {
         return (
             <div>
           <h2>Edit Menu Category</h2>
-          <div className="row">
-          <span className="col-4">Type:</span> <select className="col-4" ref="type" value={this.state.entity.type} onChange={ this.handleChange.bind(this, "type") } >
+          <br />
+          <br />
+          <span className="col-4">Type: </span> <select className="col-4" ref="type" value={this.state.entity.type} onChange={ this.handleChange.bind(this, "type") } >
                     <option></option>
                     <option>Food</option>
                     <option>Alcohol</option>
           </select>
-          </div>
-          <div className="row"><span className="col-4">Name:</span> <input className="col-6" ref="name" value={ this.state.entity.name } onChange={ this.handleChange.bind(this, "name") } /></div>
-          <div className="row"><span className="col-4">Note:</span> <input className="col-10" value={ this.state.entity.note } onChange={ this.handleChange.bind(this, "note") } /></div>
+          <br />
+          <div className="row"><span className="col-4">Name: </span> <input className="col-6" ref="name" value={ this.state.entity.name } onChange={ this.handleChange.bind(this, "name") } /></div>
+          <div className="row"><span className="col-4">Note: </span> <input className="col-10" value={ this.state.entity.note } onChange={ this.handleChange.bind(this, "note") } /></div>
           <bv.SimpleConfirmView
-            onCancel={() => { this.cancel() }}
-            onSave={() => { this.save() }}
-            onRemove={ this.props.onRemove ? () => { this.remove() } : null }
-            isDirty={this.state.isDirty}
-            ></bv.SimpleConfirmView>
+          onCancel={() => { this.cancel() } }
+          onSave={() => { this.save() } }
+          onRemove={ this.props.onRemove ? () => { this.remove() } : null }
+          isDirty={this.state.isDirty}
+          ></bv.SimpleConfirmView>
             </div>
         );
     }
@@ -181,15 +193,15 @@ export class MenuItemEditView extends bv.SimpleItemEditView {
         return (
             <div>
           <h2>Edit Menu Item</h2>
-          <div className="row"><span className="col-4">Name:</span><input className="col-6" ref="name" value={ this.state.entity.name } onChange={ this.handleChange.bind(this, "name") } /></div>
-          <div className="row"><span className="col-4">Note:</span><input className="col-10" value={ this.state.entity.note } onChange={ this.handleChange.bind(this, "note") } /></div>
-          <div className="row"><span className="col-4">Price:</span><input className="col-2" value={ this.state.entity.price } onChange={ this.handleChange.bind(this, "price") } /></div>
+          <div className="row"><span className="col-4">Name: </span><input className="col-6" ref="name" value={ this.state.entity.name } onChange={ this.handleChange.bind(this, "name") } /></div>
+          <div className="row"><span className="col-4">Note: </span><input className="col-10" value={ this.state.entity.note } onChange={ this.handleChange.bind(this, "note") } /></div>
+          <div className="row"><span className="col-4">Price: </span><input className="col-2" value={ this.state.entity.price } onChange={ this.handleChange.bind(this, "price") } /></div>
           <bv.SimpleConfirmView
-            onCancel={() => { this.cancel() }}
-            onSave={() => { this.save() }}
-            onRemove={ this.props.onRemove ? () => { this.remove() } : null }
-            isDirty={this.state.isDirty}
-            ></bv.SimpleConfirmView>
+          onCancel={() => { this.cancel() } }
+          onSave={() => { this.save() } }
+          onRemove={ this.props.onRemove ? () => { this.remove() } : null }
+          isDirty={this.state.isDirty}
+          ></bv.SimpleConfirmView>
             </div>
         );
     }

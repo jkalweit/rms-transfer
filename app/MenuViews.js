@@ -13,19 +13,19 @@ define(["require", "exports", 'react/addons', 'Models', './BaseViews'], function
         }
         MenuCategoriesView.prototype.insert = function (entity) {
             this.insertBase(entity);
+            this.setState({ selectedCategory: entity });
         };
         MenuCategoriesView.prototype.addCategory = function () {
             this.refs.addCategoryModal.toggle();
         };
         MenuCategoriesView.prototype.render = function () {
             var _this = this;
+            console.log('Selected Cat: ' + JSON.stringify(this.state.selectedCategory));
             var nodes = this.state.data.map(function (entity) {
-                return (React.createElement(MenuCategoryDetailsView, {"key": entity._id, "entity": entity, "onUpdate": _this.update.bind(_this), "onRemove": _this.remove.bind(_this)}));
+                var className = (_this.state.selectedCategory && _this.state.selectedCategory._id === entity._id) ? 'active' : '';
+                return (React.createElement("li", {"key": entity._id, "className": className, "onClick": function () { _this.setState({ selectedCategory: entity }); }}, entity.name));
             });
-            var style = {
-                display: this.state.isDisabled ? 'none' : 'block'
-            };
-            return (React.createElement("div", {"className": "menu"}, React.createElement(bv.ModalView, {"ref": "addCategoryModal", "onShown": function () { _this.refs.addCategoryView.doFocus(); }}, React.createElement(MenuCategoryEditView, {"ref": "addCategoryView", "entity": this.state.entity, "onSave": function (entity) { _this.insert(entity); _this.refs.addCategoryModal.toggle(); }, "onCancel": function () { _this.refs.addCategoryModal.toggle(); }})), React.createElement("div", {"className": "row", "style": style}, React.createElement(bv.Button, {"className": "col-4 btn-add", "onClick": function () { _this.addCategory(); }}, React.createElement("span", {"className": "fa fa-plus-circle fa-fw"}), "Category"), React.createElement("br", null), nodes)));
+            return (React.createElement("div", {"className": "menu"}, React.createElement(bv.ModalView, {"ref": "addCategoryModal", "onShown": function () { _this.refs.addCategoryView.doFocus(); }}, React.createElement(MenuCategoryEditView, {"ref": "addCategoryView", "entity": this.state.entity, "onSave": function (entity) { _this.insert(entity); _this.refs.addCategoryModal.toggle(); }, "onCancel": function () { _this.refs.addCategoryModal.toggle(); }})), React.createElement("h3", null, "Menu Categories"), React.createElement("ul", null, React.createElement("li", null, React.createElement(bv.Button, {"className": "btn-add", "onClick": function () { _this.addCategory(); }}, React.createElement("span", {"className": "fa fa-plus-circle"}), "Category")), nodes)));
         };
         return MenuCategoriesView;
     })(bv.BaseView);
@@ -65,15 +65,13 @@ define(["require", "exports", 'react/addons', 'Models', './BaseViews'], function
             this.update();
         };
         MenuCategoryDetailsView.prototype.render = function () {
-            var _this = this;
             var items = this.state.entity.menuItems || {};
             var nodes = [];
             for (var id in this.state.entity.menuItems) {
                 var entity = this.state.entity.menuItems[id];
-                nodes.push(React.createElement(MenuItemView, {"key": entity._id, "entity": entity, "onUpdate": this.updateMenuItem.bind(this), "onRemove": this.removeMenuItem.bind(this)}));
+                nodes.push(React.createElement("li", {"key": entity._id}, entity.name));
             }
-            var style = { marginTop: '20px' };
-            return (React.createElement("div", {"className": "row", "style": style, "key": this.state.entity._id}, React.createElement(bv.Button, {"className": "col-6", "onClick": function () { _this.refs.editCategoryView.reset(); _this.refs.editCategoryModal.show(); }}, this.state.entity.name), React.createElement(bv.Button, {"className": "col-2 btn-add", "onClick": function () { _this.refs.addMenuItemModal.toggle(); }}, React.createElement("span", {"className": "fa fa-plus-circle fa-fw"})), React.createElement(bv.ModalView, {"ref": "addMenuItemModal", "onShown": function () { _this.refs.editItemView.doFocus(); }}, React.createElement(MenuItemEditView, {"ref": "editItemView", "entity": {}, "onSave": function (entity) { _this.insertMenuItem(entity); _this.refs.addMenuItemModal.hide(); }, "onCancel": function () { _this.refs.addMenuItemModal.toggle(); }})), React.createElement(bv.ModalView, {"ref": "editCategoryModal", "onShown": function () { _this.refs.editCategoryView.doFocus(); }}, React.createElement(MenuCategoryEditView, {"ref": "editCategoryView", "entity": this.state.entity, "onSave": function (entity) { _this.props.onUpdate(entity); _this.refs.editCategoryModal.toggle(); }, "onCancel": function () { _this.refs.editCategoryModal.toggle(); }, "onRemove": function () { _this.remove(); }})), nodes));
+            return (React.createElement("li", {"key": this.state.entity._id}, this.state.entity.name));
         };
         return MenuCategoryDetailsView;
     })(bv.BaseItemView);
@@ -89,7 +87,7 @@ define(["require", "exports", 'react/addons', 'Models', './BaseViews'], function
         };
         MenuCategoryEditView.prototype.render = function () {
             var _this = this;
-            return (React.createElement("div", null, React.createElement("h2", null, "Edit Menu Category"), React.createElement("div", {"className": "row"}, React.createElement("span", {"className": "col-4"}, "Type:"), React.createElement("select", {"className": "col-4", "ref": "type", "value": this.state.entity.type, "onChange": this.handleChange.bind(this, "type")}, React.createElement("option", null), React.createElement("option", null, "Food"), React.createElement("option", null, "Alcohol"))), React.createElement("div", {"className": "row"}, React.createElement("span", {"className": "col-4"}, "Name:"), React.createElement("input", {"className": "col-6", "ref": "name", "value": this.state.entity.name, "onChange": this.handleChange.bind(this, "name")})), React.createElement("div", {"className": "row"}, React.createElement("span", {"className": "col-4"}, "Note:"), React.createElement("input", {"className": "col-10", "value": this.state.entity.note, "onChange": this.handleChange.bind(this, "note")})), React.createElement(bv.SimpleConfirmView, {"onCancel": function () { _this.cancel(); }, "onSave": function () { _this.save(); }, "onRemove": this.props.onRemove ? function () { _this.remove(); } : null, "isDirty": this.state.isDirty})));
+            return (React.createElement("div", null, React.createElement("h2", null, "Edit Menu Category"), React.createElement("br", null), React.createElement("br", null), React.createElement("span", {"className": "col-4"}, "Type: "), React.createElement("select", {"className": "col-4", "ref": "type", "value": this.state.entity.type, "onChange": this.handleChange.bind(this, "type")}, React.createElement("option", null), React.createElement("option", null, "Food"), React.createElement("option", null, "Alcohol")), React.createElement("br", null), React.createElement("div", {"className": "row"}, React.createElement("span", {"className": "col-4"}, "Name: "), React.createElement("input", {"className": "col-6", "ref": "name", "value": this.state.entity.name, "onChange": this.handleChange.bind(this, "name")})), React.createElement("div", {"className": "row"}, React.createElement("span", {"className": "col-4"}, "Note: "), React.createElement("input", {"className": "col-10", "value": this.state.entity.note, "onChange": this.handleChange.bind(this, "note")})), React.createElement(bv.SimpleConfirmView, {"onCancel": function () { _this.cancel(); }, "onSave": function () { _this.save(); }, "onRemove": this.props.onRemove ? function () { _this.remove(); } : null, "isDirty": this.state.isDirty})));
         };
         return MenuCategoryEditView;
     })(bv.SimpleItemEditView);
@@ -119,7 +117,7 @@ define(["require", "exports", 'react/addons', 'Models', './BaseViews'], function
         MenuItemEditView.prototype.render = function () {
             var _this = this;
             var hide = { float: 'right', display: this.props.onRemove ? 'block' : 'none' };
-            return (React.createElement("div", null, React.createElement("h2", null, "Edit Menu Item"), React.createElement("div", {"className": "row"}, React.createElement("span", {"className": "col-4"}, "Name:"), React.createElement("input", {"className": "col-6", "ref": "name", "value": this.state.entity.name, "onChange": this.handleChange.bind(this, "name")})), React.createElement("div", {"className": "row"}, React.createElement("span", {"className": "col-4"}, "Note:"), React.createElement("input", {"className": "col-10", "value": this.state.entity.note, "onChange": this.handleChange.bind(this, "note")})), React.createElement("div", {"className": "row"}, React.createElement("span", {"className": "col-4"}, "Price:"), React.createElement("input", {"className": "col-2", "value": this.state.entity.price, "onChange": this.handleChange.bind(this, "price")})), React.createElement(bv.SimpleConfirmView, {"onCancel": function () { _this.cancel(); }, "onSave": function () { _this.save(); }, "onRemove": this.props.onRemove ? function () { _this.remove(); } : null, "isDirty": this.state.isDirty})));
+            return (React.createElement("div", null, React.createElement("h2", null, "Edit Menu Item"), React.createElement("div", {"className": "row"}, React.createElement("span", {"className": "col-4"}, "Name: "), React.createElement("input", {"className": "col-6", "ref": "name", "value": this.state.entity.name, "onChange": this.handleChange.bind(this, "name")})), React.createElement("div", {"className": "row"}, React.createElement("span", {"className": "col-4"}, "Note: "), React.createElement("input", {"className": "col-10", "value": this.state.entity.note, "onChange": this.handleChange.bind(this, "note")})), React.createElement("div", {"className": "row"}, React.createElement("span", {"className": "col-4"}, "Price: "), React.createElement("input", {"className": "col-2", "value": this.state.entity.price, "onChange": this.handleChange.bind(this, "price")})), React.createElement(bv.SimpleConfirmView, {"onCancel": function () { _this.cancel(); }, "onSave": function () { _this.save(); }, "onRemove": this.props.onRemove ? function () { _this.remove(); } : null, "isDirty": this.state.isDirty})));
         };
         return MenuItemEditView;
     })(bv.SimpleItemEditView);
