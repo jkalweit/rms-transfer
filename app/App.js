@@ -1,6 +1,8 @@
 require.config({
   paths: {
     "react/addons": "/bower_components/react/react-with-addons",
+    "freezer-js": "/bower_components/freezer-js/build/freezer",
+    "immutable": "/bower_components/immutable/dist/immutable",
     "moment": "/bower_components/moment/moment",
     "socket.io": "/socket.io/socket.io"
   }

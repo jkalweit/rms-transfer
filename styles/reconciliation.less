@@ -64,9 +64,17 @@
         padding: 10px;
         border-bottom: 1px solid @mdc-black-lighter;
 
-        &.active {
-            color: #FFFFFF;
-            background-color: @mdc-purple-500;
+        transition: all 100ms ease-out;
+        transition-property: color, background-color;
+
+        &:hover {
+          color: #FFFFFF;
+          background-color: @mdc-purple-300;
+        }
+
+        &:active, &.active {
+          color: #FFFFFF;
+          background-color: @mdc-purple-500;
         }
       }
     }

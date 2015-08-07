@@ -2,13 +2,51 @@
 
 import moment = require('moment');
 
-export class DbObjectModel {
+
+export interface FreezerObject<T> {
+    get?: () => T;
+    set?: (key: any, val: any) => void;
+}
+export interface FreezerMap<T> {
+
+}
+export interface Reconciliation extends FreezerObject<Reconciliation> {
+    menu: MenuModel;
+    tickets: { [key: string]: TicketModel };
+}
+export interface MenuModel extends FreezerObject<MenuModel> {
+    categories: { [key: string]: MenuCategoryModel };
+}
+export interface MenuCategoryModel extends FreezerObject<MenuCategoryModel> {
+    key: string;
+    name: string;
+    items: { [key: string]: MenuItemModel };
+}
+export interface MenuItemModel extends FreezerObject<MenuItemModel> {
+    key: string;
+    name: string;
+    price: number;
+}
+
+
+
+export interface TicketModel extends FreezerObject<TicketModel> {
+    key: string;
+    name: string;
+}
+
+
+
+
+
+/*export class DbObjectModel {
     _id: string;
     created: Date;
     lastModified: Date;
     static collectionName: string;
-}
+}*/
 
+/*
 export class InventoryItemModel extends DbObjectModel {
     name: string;
     note: string;
@@ -47,8 +85,8 @@ export class ShiftModel extends DbObjectModel {
     }
 }
 
-
-
+*/
+/*
 export class ShiftPositionModel {
     name: string;
     employee: string;
@@ -57,8 +95,8 @@ export class ShiftPositionModel {
     end: string;
     static collectionName: string = 'shifts.position';
 }
-
-
+*/
+/*
 export class KitchenOrderModel extends DbObjectModel {
     name: string;
     isTogo: boolean;
@@ -68,6 +106,10 @@ export class KitchenOrderModel extends DbObjectModel {
     completedAt: Date;
     static collectionName: string = 'kitchen_orders';
 }
+
+
+
+
 
 export interface MenuCategoryModel {
     _id?: string;
@@ -84,20 +126,19 @@ export interface MenuItemModel {
   price?: number;
 }
 
-export class CustomerModel extends DbObjectModel {
-  name: string;
-}
 
-export class TicketModel extends DbObjectModel {
-  name: string;
-  customers: CustomerModel[];
-}
 
-export class ReconciliationModel extends DbObjectModel {
-  name: string = 'Dinner';
+
+
+
+
+
+
+
+
+export interface ReconciliationModel {
+  _id: string;
+  name: string = 'Dinner;
   date: Date;
   tickets: TicketModel[];
-  static getCollectionName(rec: ReconciliationModel) : string {
-    return 'reconciliations' + rec.date.toUTCString();
-  }
-}
+}*/

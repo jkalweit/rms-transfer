@@ -463,7 +463,14 @@ button {
   margin: 0;
   padding: 10px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  transition: all 100ms ease-out;
+  transition-property: color, background-color;
 }
+.reconciliation .ticket-list ul li:hover {
+  color: #FFFFFF;
+  background-color: #ba68c8;
+}
+.reconciliation .ticket-list ul li:active,
 .reconciliation .ticket-list ul li.active {
   color: #FFFFFF;
   background-color: #9c27b0;
