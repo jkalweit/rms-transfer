@@ -3,34 +3,36 @@
 import moment = require('moment');
 
 
-export interface FreezerObject<T> {
-    get?: () => T;
-    set?: (key: any, val: any) => void;
+export interface ImmutableObject<T> {
+    get?: {
+      (): T;
+      (key: string): any;
+    }
+    set?: (key: string, val: any) => void;
 }
 export interface FreezerMap<T> {
 
 }
-export interface Reconciliation extends FreezerObject<Reconciliation> {
+export interface Reconciliation extends ImmutableObject<Reconciliation> {
     menu: MenuModel;
     tickets: { [key: string]: TicketModel };
 }
-export interface MenuModel extends FreezerObject<MenuModel> {
+export interface MenuModel extends ImmutableObject<MenuModel> {
     categories: { [key: string]: MenuCategoryModel };
 }
-export interface MenuCategoryModel extends FreezerObject<MenuCategoryModel> {
+export interface MenuCategoryModel extends ImmutableObject<MenuCategoryModel> {
     key: string;
     name: string;
     items: { [key: string]: MenuItemModel };
 }
-export interface MenuItemModel extends FreezerObject<MenuItemModel> {
+export interface MenuItemModel extends ImmutableObject<MenuItemModel> {
     key: string;
     name: string;
     price: number;
 }
 
 
-
-export interface TicketModel extends FreezerObject<TicketModel> {
+export interface TicketModel extends ImmutableObject<TicketModel> {
     key: string;
     name: string;
 }

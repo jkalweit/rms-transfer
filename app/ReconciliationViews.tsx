@@ -2,27 +2,26 @@
 /// <reference path="./Models.ts" />
 
 import React = require('react/addons');
-import Freezer = require('freezer-js');
+//import Freezer = require('freezer-js');
+import Immutable = require('immutable');
 import moment = require('moment');
 
 import models = require('./Models');
-
-import bv = require('./BaseViews');
+import Store = require('./Store');
 
 
 
 var PureRenderMixin = require('react/addons').addons.PureRenderMixin;
 
-// This is a test
 
 export interface ReconciliationViewProps {
-    tickets: { [key: string]: models.TicketModel };
+    tickets: Immutable.Map<string, models.TicketModel>;
 }
 export interface ReconciliationViewState {
     selectedTicket: models.TicketModel;
 }
 export class ReconciliationView extends React.Component<ReconciliationViewProps, ReconciliationViewState> {
-    mixins = [PureRenderMixin]
+    mixins = [PureRenderMixin];
     constructor(props) {
         super(props);
         this.state = {
@@ -37,10 +36,12 @@ export class ReconciliationView extends React.Component<ReconciliationViewProps,
         console.log('   Render: Reconciliation');
         return (
             <div className="reconciliation">
+              Testing...
+            {
             <TicketsView tickets={this.props.tickets}
             onSelectTicket={ this.handleSelectTicket.bind(this) }
             selectedTicket={ this.state.selectedTicket }></TicketsView>
-            { /*
+/*
               <TicketsView tickets={this.state.filteredTickets}
               selectedTicket={this.state.selectedTicket}
               onFilterChanged={ this.handleFilterChanged.bind(this) }
@@ -74,40 +75,25 @@ export class TicketView extends React.Component<TicketViewProps, any> {
 }*/
 
 
-
 export interface TicketsViewProps {
-    tickets: { [key: string]: models.TicketModel }
+    tickets: Immutable.Map<string, models.TicketModel>;
     selectedTicket: models.TicketModel;
-    /*
-    onFilterChanged: (filter: string) => void;
-    onInsertTicket: (name: string) => void;*/
     onSelectTicket: (ticket: models.TicketModel) => void;
 }
 export interface TicketsViewState {
-    filteredTickets?: { [key: string]: models.TicketModel };
+    tickets?: Immutable.Map<string, models.TicketModel>;
+    filteredTickets?: Immutable.Map<string, models.TicketModel>;
 }
-export class TicketsView extends React.Component<TicketsViewProps, any> {
-    //mixins = [PureRenderMixin]
-    stateStore: any;
+export class TicketsView extends React.Component<TicketsViewProps, TicketsViewState> {
+    mixins = [PureRenderMixin];
     constructor(props: TicketsViewProps) {
         super(props);
-        this.stateStore = new Freezer<TicketsViewState>({
-            filteredTickets: this.getFilteredTickets('', props.tickets)
-        });
+      var tickets = this.props.tickets;
+      var filteredTickets = tickets;
         this.state = {
-            store: this.stateStore.get()
+            tickets: tickets,
+            filteredTickets: filteredTickets
         };
-    }
-    componentDidMount() {
-        this.stateStore.on('update', () => {
-            this.setState({ store: this.stateStore.get() });
-        });
-    }
-    shouldComponentUpdate(nextProps: TicketsViewProps, nextState: any) {
-        var shouldUpdate = this.props.tickets !== nextProps.tickets
-            || this.props.selectedTicket !== nextProps.selectedTicket
-            || this.state.store !== nextState.store;
-        return shouldUpdate;
     }
     handleFilterChanged(element, e) {
         var tickets = this.props.tickets;
@@ -117,33 +103,27 @@ export class TicketsView extends React.Component<TicketsViewProps, any> {
                 name: e.target.value
             };
             e.target.value = '';
-            tickets = (this.props.tickets as any).set(ticket.key, ticket);
+            Store.insertTicket(ticket);
         }
         var filter = e.target.value;
-        var filteredTickets = this.getFilteredTickets(filter, tickets);
-        this.state.store.set('filteredTickets', filteredTickets);
+        var filteredTickets = this.getFilteredTickets(filter, this.state.tickets);
+        this.setState( {filteredTickets: filteredTickets});
     }
-    getFilteredTickets(filter: string, tickets: { [key: string]: models.TicketModel }): { [key: string]: models.TicketModel } {
+    getFilteredTickets(filter: string, tickets: Immutable.Map<string, models.TicketModel>): Immutable.Map<string, models.TicketModel> {
         var normalized = filter.trim().toLowerCase();
         if (normalized.length === 0) return tickets;
 
-        var filtered: { [key: string]: models.TicketModel } = {};
-
-        Object.keys(tickets).forEach((key) => {
-            if (tickets[key].name.toLowerCase().indexOf(normalized) >= 0) {
-                filtered[key] = tickets[key];
-            }
+        var filtered = tickets.filter((ticket: models.TicketModel): boolean => {
+          return ticket.get('name').toLowerCase().indexOf(normalized) >= 0;
         });
-        return filtered;
+        return filtered as Immutable.Map<string, models.TicketModel>;
     }
     render() {
         console.log('     Render: Tickets List');
-        var tickets = this.state.store.filteredTickets;
-        var nodes = Object.keys(tickets).map((key) => {
-            var ticket = tickets[key];
-            var isSelected = this.props.selectedTicket === ticket;
-            return (<TicketView key={key} isSelected={isSelected} ticket={ticket} onSelect={(ticket) => { this.props.onSelectTicket(ticket) } }></TicketView>);
-        });
+        var tickets = this.state.filteredTickets;
+        var nodes = tickets.map((ticket) => {
+            return (<TicketView key={ticket.get('key')} selectedTicket={this.props.selectedTicket} ticket={ticket} onSelect={(ticket) => { this.props.onSelectTicket(ticket) } }></TicketView>);
+        }).toArray();
         return (
             <div className="ticket-list">
               <h3>Tickets</h3>
@@ -166,22 +146,21 @@ export class TicketsView extends React.Component<TicketsViewProps, any> {
 
 
 
+
 export interface TicketViewProps {
     key: string;
-    isSelected: boolean;
     ticket: models.TicketModel;
+    selectedTicket: models.TicketModel;
     onSelect: (ticket: models.TicketModel) => void;
 }
 export class TicketView extends React.Component<TicketViewProps, any> {
-    shouldComponentUpdate(nextProps: TicketViewProps) {
-        var shouldUpdate = this.props.ticket !== nextProps.ticket || this.props.isSelected !== nextProps.isSelected;
-        return shouldUpdate;
-    }
+    mixins = [PureRenderMixin];
     render() {
         var ticket = this.props.ticket;
-        console.log('       Render: Ticket: ' + ticket.name);
+        var isSelected = this.props.selectedTicket === ticket;
+        console.log('       Render: Ticket: ' + ticket.get('name'));
         return (
-            <li className={ this.props.isSelected ? 'active' : '' } onClick={() => { this.props.onSelect(ticket) } }>{ticket.name}</li>
+            <li className={ isSelected ? 'active' : '' } onClick={() => { this.props.onSelect(ticket) } }>{ticket.get('name')}</li>
         );
     }
 }

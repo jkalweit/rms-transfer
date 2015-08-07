@@ -5,7 +5,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-define(["require", "exports", 'react/addons', 'freezer-js'], function (require, exports, React, Freezer) {
+define(["require", "exports", 'react/addons', './Store'], function (require, exports, React, Store) {
     var PureRenderMixin = require('react/addons').addons.PureRenderMixin;
     var ReconciliationView = (function (_super) {
         __extends(ReconciliationView, _super);
@@ -22,7 +22,7 @@ define(["require", "exports", 'react/addons', 'freezer-js'], function (require, 
         };
         ReconciliationView.prototype.render = function () {
             console.log('   Render: Reconciliation');
-            return (React.createElement("div", {"className": "reconciliation"}, React.createElement(TicketsView, {"tickets": this.props.tickets, "onSelectTicket": this.handleSelectTicket.bind(this), "selectedTicket": this.state.selectedTicket})));
+            return (React.createElement("div", {"className": "reconciliation"}, "Testing...", React.createElement(TicketsView, {"tickets": this.props.tickets, "onSelectTicket": this.handleSelectTicket.bind(this), "selectedTicket": this.state.selectedTicket})));
         };
         return ReconciliationView;
     })(React.Component);
@@ -31,25 +31,14 @@ define(["require", "exports", 'react/addons', 'freezer-js'], function (require, 
         __extends(TicketsView, _super);
         function TicketsView(props) {
             _super.call(this, props);
-            this.stateStore = new Freezer({
-                filteredTickets: this.getFilteredTickets('', props.tickets)
-            });
+            this.mixins = [PureRenderMixin];
+            var tickets = this.props.tickets;
+            var filteredTickets = tickets;
             this.state = {
-                store: this.stateStore.get()
+                tickets: tickets,
+                filteredTickets: filteredTickets
             };
         }
-        TicketsView.prototype.componentDidMount = function () {
-            var _this = this;
-            this.stateStore.on('update', function () {
-                _this.setState({ store: _this.stateStore.get() });
-            });
-        };
-        TicketsView.prototype.shouldComponentUpdate = function (nextProps, nextState) {
-            var shouldUpdate = this.props.tickets !== nextProps.tickets
-                || this.props.selectedTicket !== nextProps.selectedTicket
-                || this.state.store !== nextState.store;
-            return shouldUpdate;
-        };
         TicketsView.prototype.handleFilterChanged = function (element, e) {
             var tickets = this.props.tickets;
             if (e.keyCode === 13) {
@@ -58,33 +47,28 @@ define(["require", "exports", 'react/addons', 'freezer-js'], function (require, 
                     name: e.target.value
                 };
                 e.target.value = '';
-                tickets = this.props.tickets.set(ticket.key, ticket);
+                Store.insertTicket(ticket);
             }
             var filter = e.target.value;
-            var filteredTickets = this.getFilteredTickets(filter, tickets);
-            this.state.store.set('filteredTickets', filteredTickets);
+            var filteredTickets = this.getFilteredTickets(filter, this.state.tickets);
+            this.setState({ filteredTickets: filteredTickets });
         };
         TicketsView.prototype.getFilteredTickets = function (filter, tickets) {
             var normalized = filter.trim().toLowerCase();
             if (normalized.length === 0)
                 return tickets;
-            var filtered = {};
-            Object.keys(tickets).forEach(function (key) {
-                if (tickets[key].name.toLowerCase().indexOf(normalized) >= 0) {
-                    filtered[key] = tickets[key];
-                }
+            var filtered = tickets.filter(function (ticket) {
+                return ticket.get('name').toLowerCase().indexOf(normalized) >= 0;
             });
             return filtered;
         };
         TicketsView.prototype.render = function () {
             var _this = this;
             console.log('     Render: Tickets List');
-            var tickets = this.state.store.filteredTickets;
-            var nodes = Object.keys(tickets).map(function (key) {
-                var ticket = tickets[key];
-                var isSelected = _this.props.selectedTicket === ticket;
-                return (React.createElement(TicketView, {"key": key, "isSelected": isSelected, "ticket": ticket, "onSelect": function (ticket) { _this.props.onSelectTicket(ticket); }}));
-            });
+            var tickets = this.state.filteredTickets;
+            var nodes = tickets.map(function (ticket) {
+                return (React.createElement(TicketView, {"key": ticket.get('key'), "selectedTicket": _this.props.selectedTicket, "ticket": ticket, "onSelect": function (ticket) { _this.props.onSelectTicket(ticket); }}));
+            }).toArray();
             return (React.createElement("div", {"className": "ticket-list"}, React.createElement("h3", null, "Tickets"), React.createElement("input", {"className": "name-filter", "ref": function (el) {
                 var input = React.findDOMNode(el);
                 if (input) {
@@ -102,16 +86,14 @@ define(["require", "exports", 'react/addons', 'freezer-js'], function (require, 
         __extends(TicketView, _super);
         function TicketView() {
             _super.apply(this, arguments);
+            this.mixins = [PureRenderMixin];
         }
-        TicketView.prototype.shouldComponentUpdate = function (nextProps) {
-            var shouldUpdate = this.props.ticket !== nextProps.ticket || this.props.isSelected !== nextProps.isSelected;
-            return shouldUpdate;
-        };
         TicketView.prototype.render = function () {
             var _this = this;
             var ticket = this.props.ticket;
-            console.log('       Render: Ticket: ' + ticket.name);
-            return (React.createElement("li", {"className": this.props.isSelected ? 'active' : '', "onClick": function () { _this.props.onSelect(ticket); }}, ticket.name));
+            var isSelected = this.props.selectedTicket === ticket;
+            console.log('       Render: Ticket: ' + ticket.get('name'));
+            return (React.createElement("li", {"className": isSelected ? 'active' : '', "onClick": function () { _this.props.onSelect(ticket); }}, ticket.get('name')));
         };
         return TicketView;
     })(React.Component);

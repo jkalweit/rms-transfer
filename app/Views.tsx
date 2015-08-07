@@ -2,9 +2,11 @@
 /// <reference path="./Models.ts" />
 
 import React = require('react/addons');
-import Freezer = require('freezer-js');
+//import Freezer = require('freezer-js');
+import Immutable = require('immutable');
 
 import models = require('./Models');
+import Store = require('./Store');
 
 import baseViews = require('./BaseViews');
 import vendorViews = require('./vendorViews');
@@ -78,14 +80,6 @@ export class NavigationItem extends NavigationView {
 
 
 
-var reconciliationStore = new Freezer<models.Reconciliation>({
-    menu: {
-        categories: {}
-    },
-    tickets: {
-      '0': { key: '0', name: 'Justin' }
-    }
-});
 
 
 
@@ -95,20 +89,15 @@ export interface MainViewState {
 export class MainView extends React.Component<{}, MainViewState> {
     constructor(props) {
         super(props);
+        Store.onChanged = (updated) => {
+          this.setState({reconciliation: updated});
+        };
         this.state = {
-            reconciliation: reconciliationStore.get()
+            reconciliation: Store.reconciliation
         };
     }
-    componentDidMount() {
-        reconciliationStore.on('update', () => {
-            var reconciliation = reconciliationStore.get();
-            console.log('MainView Store: ' + JSON.stringify(reconciliation));
-            this.setState({
-                reconciliation: reconciliation
-            })
-        });
-    }
     render() {
+      console.log('Render: MainView');
         var rec = this.state.reconciliation;
         return (
             <div>
@@ -125,14 +114,10 @@ export class MainView extends React.Component<{}, MainViewState> {
               <p>There will be a dashboard here later.</p>
               <p>Use the navigation above to select a location.</p>
             </NavigationView>
-            <NavigationView hash="#reconciliation"><recViews.ReconciliationView tickets={rec.tickets}></recViews.ReconciliationView></NavigationView>
+            <NavigationView hash="#reconciliation"><recViews.ReconciliationView tickets={rec.get('tickets')}></recViews.ReconciliationView></NavigationView>
+            { /*
             <NavigationView hash="#menu"><menuViews.MenuView menu={rec.menu}></menuViews.MenuView></NavigationView>
             <NavigationView hash="#kitchen"><h1>The kitchen!</h1></NavigationView>
-          { /*
-            <kitchenViews.KitchenOrdersView></kitchenViews.KitchenOrdersView>
-             <inventoryViews.InventoryView></inventoryViews.InventoryView>
-            <vendorViews.VendorsView></vendorViews.VendorsView>
-        <shiftViews.ShiftsView></shiftViews.ShiftsView>
        */ }
             </div>
         );

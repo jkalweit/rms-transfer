@@ -5,7 +5,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-define(["require", "exports", 'react/addons', 'freezer-js', './MenuViews', './ReconciliationViews'], function (require, exports, React, Freezer, menuViews, recViews) {
+define(["require", "exports", 'react/addons', './Store', './ReconciliationViews'], function (require, exports, React, Store, recViews) {
     var NavigationBase = (function (_super) {
         __extends(NavigationBase, _super);
         function NavigationBase(props) {
@@ -55,35 +55,22 @@ define(["require", "exports", 'react/addons', 'freezer-js', './MenuViews', './Re
         return NavigationItem;
     })(NavigationView);
     exports.NavigationItem = NavigationItem;
-    var reconciliationStore = new Freezer({
-        menu: {
-            categories: {}
-        },
-        tickets: {
-            '0': { key: '0', name: 'Justin' }
-        }
-    });
     var MainView = (function (_super) {
         __extends(MainView, _super);
         function MainView(props) {
+            var _this = this;
             _super.call(this, props);
+            Store.onChanged = function (updated) {
+                _this.setState({ reconciliation: updated });
+            };
             this.state = {
-                reconciliation: reconciliationStore.get()
+                reconciliation: Store.reconciliation
             };
         }
-        MainView.prototype.componentDidMount = function () {
-            var _this = this;
-            reconciliationStore.on('update', function () {
-                var reconciliation = reconciliationStore.get();
-                console.log('MainView Store: ' + JSON.stringify(reconciliation));
-                _this.setState({
-                    reconciliation: reconciliation
-                });
-            });
-        };
         MainView.prototype.render = function () {
+            console.log('Render: MainView');
             var rec = this.state.reconciliation;
-            return (React.createElement("div", null, React.createElement("div", {"className": "sticky-header"}, React.createElement("ul", null, React.createElement("li", null, React.createElement(NavigationItem, {"hash": "#"}, React.createElement("span", {"className": "col-2"}, "RMS"))), React.createElement("li", null, React.createElement(NavigationItem, {"hash": "#reconciliation"}, React.createElement("span", {"className": "col-6"}, "Reconciliation"))), React.createElement("li", null, React.createElement(NavigationItem, {"hash": "#menu"}, React.createElement("span", {"className": "col-5"}, "Menu"))), React.createElement("li", null, React.createElement(NavigationItem, {"hash": "#kitchen"}, React.createElement("span", {"className": "col-5"}, "Kitchen"))))), React.createElement(NavigationView, {"hash": "#"}, React.createElement("h1", null, "Welcome to RMS"), React.createElement("p", null, "There will be a dashboard here later."), React.createElement("p", null, "Use the navigation above to select a location.")), React.createElement(NavigationView, {"hash": "#reconciliation"}, React.createElement(recViews.ReconciliationView, {"tickets": rec.tickets})), React.createElement(NavigationView, {"hash": "#menu"}, React.createElement(menuViews.MenuView, {"menu": rec.menu})), React.createElement(NavigationView, {"hash": "#kitchen"}, React.createElement("h1", null, "The kitchen!"))));
+            return (React.createElement("div", null, React.createElement("div", {"className": "sticky-header"}, React.createElement("ul", null, React.createElement("li", null, React.createElement(NavigationItem, {"hash": "#"}, React.createElement("span", {"className": "col-2"}, "RMS"))), React.createElement("li", null, React.createElement(NavigationItem, {"hash": "#reconciliation"}, React.createElement("span", {"className": "col-6"}, "Reconciliation"))), React.createElement("li", null, React.createElement(NavigationItem, {"hash": "#menu"}, React.createElement("span", {"className": "col-5"}, "Menu"))), React.createElement("li", null, React.createElement(NavigationItem, {"hash": "#kitchen"}, React.createElement("span", {"className": "col-5"}, "Kitchen"))))), React.createElement(NavigationView, {"hash": "#"}, React.createElement("h1", null, "Welcome to RMS"), React.createElement("p", null, "There will be a dashboard here later."), React.createElement("p", null, "Use the navigation above to select a location.")), React.createElement(NavigationView, {"hash": "#reconciliation"}, React.createElement(recViews.ReconciliationView, {"tickets": rec.get('tickets')}))));
         };
         return MainView;
     })(React.Component);
