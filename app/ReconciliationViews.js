@@ -17,7 +17,6 @@ define(["require", "exports", 'react/addons', './Store'], function (require, exp
             };
         }
         ReconciliationView.prototype.handleSelectTicket = function (ticket) {
-            console.log('Select ticket: ' + JSON.stringify(ticket));
             this.setState({ selectedTicket: ticket });
         };
         ReconciliationView.prototype.render = function () {
@@ -31,26 +30,45 @@ define(["require", "exports", 'react/addons', './Store'], function (require, exp
         __extends(TicketsView, _super);
         function TicketsView(props) {
             _super.call(this, props);
-            this.mixins = [PureRenderMixin];
             var tickets = this.props.tickets;
             var filteredTickets = tickets;
             this.state = {
-                tickets: tickets,
                 filteredTickets: filteredTickets
             };
         }
+        TicketsView.prototype.shallowCompare = function (curr, next) {
+            var equal = true;
+            Object.keys(next).forEach(function (key) {
+                if ((next[key] !== curr[key])) {
+                    console.log(key + ': ' + next[key] + ' ===? ' + (next[key] === curr[key]));
+                    equal = false;
+                }
+            });
+            return equal;
+        };
+        TicketsView.prototype.willReceiveProps = function (nextProps) {
+            this.setState(this.getFilteredState('', nextProps.tickets));
+        };
+        TicketsView.prototype.shouldComponentUpdate = function (nextProps, nextState) {
+            var propsEqual = this.shallowCompare(this.props, nextProps);
+            var stateEqual = this.shallowCompare(this.state, nextState);
+            return !propsEqual || !stateEqual;
+        };
+        TicketsView.prototype.getFilteredState = function (filter, tickets) {
+            return { filteredTickets: this.getFilteredTickets(filter, tickets) };
+        };
         TicketsView.prototype.handleFilterChanged = function (element, e) {
             var tickets = this.props.tickets;
-            if (e.keyCode === 13) {
+            var name = e.target.value.trim();
+            if (e.keyCode === 13 && name !== '') {
                 var ticket = {
                     key: new Date().toISOString(),
-                    name: e.target.value
+                    name: name
                 };
-                e.target.value = '';
+                e.target.value = name = '';
                 Store.insertTicket(ticket);
             }
-            var filter = e.target.value;
-            var filteredTickets = this.getFilteredTickets(filter, this.state.tickets);
+            var filteredTickets = this.getFilteredTickets(name, this.props.tickets);
             this.setState({ filteredTickets: filteredTickets });
         };
         TicketsView.prototype.getFilteredTickets = function (filter, tickets) {
@@ -86,8 +104,21 @@ define(["require", "exports", 'react/addons', './Store'], function (require, exp
         __extends(TicketView, _super);
         function TicketView() {
             _super.apply(this, arguments);
-            this.mixins = [PureRenderMixin];
         }
+        TicketView.prototype.shouldComponentUpdate = function (nextProps) {
+            var update = !this.shallowCompare(this.props, nextProps);
+            return update;
+        };
+        TicketView.prototype.shallowCompare = function (curr, next) {
+            var equal = true;
+            Object.keys(next).forEach(function (key) {
+                if ((next[key] !== curr[key])) {
+                    console.log(key + ': ' + next[key] + ' ===? NOT EQUAL');
+                    equal = false;
+                }
+            });
+            return equal;
+        };
         TicketView.prototype.render = function () {
             var _this = this;
             var ticket = this.props.ticket;

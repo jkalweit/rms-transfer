@@ -29,7 +29,6 @@ export class ReconciliationView extends React.Component<ReconciliationViewProps,
         };
     }
     handleSelectTicket(ticket: models.TicketModel) {
-        console.log('Select ticket: ' + JSON.stringify(ticket));
         this.setState({ selectedTicket: ticket });
     }
     render() {
@@ -81,32 +80,52 @@ export interface TicketsViewProps {
     onSelectTicket: (ticket: models.TicketModel) => void;
 }
 export interface TicketsViewState {
-    tickets?: Immutable.Map<string, models.TicketModel>;
     filteredTickets?: Immutable.Map<string, models.TicketModel>;
 }
 export class TicketsView extends React.Component<TicketsViewProps, TicketsViewState> {
-    mixins = [PureRenderMixin];
+    //mixins = [PureRenderMixin];
     constructor(props: TicketsViewProps) {
         super(props);
       var tickets = this.props.tickets;
       var filteredTickets = tickets;
         this.state = {
-            tickets: tickets,
             filteredTickets: filteredTickets
         };
     }
+    shallowCompare(curr: any, next: any): boolean {
+      var equal = true;
+      Object.keys(next).forEach((key) => {
+        if((next[key] !== curr[key])) {
+          console.log(key + ': ' + next[key] + ' ===? ' + (next[key] === curr[key]));
+          equal = false;
+        }
+        //console.log(key + ': ' + next[key] + ' ===? ' + (next[key] === curr[key]));
+        });
+        return equal;
+    }
+    willReceiveProps(nextProps) {
+      this.setState(this.getFilteredState('', nextProps.tickets));
+    }
+    shouldComponentUpdate(nextProps: TicketsViewProps, nextState: TicketsViewState) {
+      var propsEqual = this.shallowCompare(this.props, nextProps);
+      var stateEqual = this.shallowCompare(this.state, nextState);
+      return !propsEqual || !stateEqual;
+    }
+    getFilteredState(filter: string, tickets: Immutable.Map<string, models.TicketModel>): any {
+      return { filteredTickets: this.getFilteredTickets(filter, tickets) };
+    }
     handleFilterChanged(element, e) {
         var tickets = this.props.tickets;
-        if (e.keyCode === 13) {
+        var name = e.target.value.trim();
+        if (e.keyCode === 13 && name !== '') {
             var ticket: models.TicketModel = {
                 key: new Date().toISOString(),
-                name: e.target.value
+                name: name
             };
-            e.target.value = '';
+            e.target.value = name = '';
             Store.insertTicket(ticket);
         }
-        var filter = e.target.value;
-        var filteredTickets = this.getFilteredTickets(filter, this.state.tickets);
+        var filteredTickets = this.getFilteredTickets(name, this.props.tickets);
         this.setState( {filteredTickets: filteredTickets});
     }
     getFilteredTickets(filter: string, tickets: Immutable.Map<string, models.TicketModel>): Immutable.Map<string, models.TicketModel> {
@@ -116,6 +135,7 @@ export class TicketsView extends React.Component<TicketsViewProps, TicketsViewSt
         var filtered = tickets.filter((ticket: models.TicketModel): boolean => {
           return ticket.get('name').toLowerCase().indexOf(normalized) >= 0;
         });
+
         return filtered as Immutable.Map<string, models.TicketModel>;
     }
     render() {
@@ -153,8 +173,21 @@ export interface TicketViewProps {
     selectedTicket: models.TicketModel;
     onSelect: (ticket: models.TicketModel) => void;
 }
-export class TicketView extends React.Component<TicketViewProps, any> {
-    mixins = [PureRenderMixin];
+export class TicketView extends React.Component<TicketViewProps, {}> {
+    shouldComponentUpdate(nextProps: TicketViewProps) {
+      var update = !this.shallowCompare(this.props, nextProps);
+      return update;
+    }
+    shallowCompare(curr: any, next: any): boolean {
+      var equal = true;
+      Object.keys(next).forEach((key) => {
+        if((next[key] !== curr[key])) {
+          console.log(key + ': ' + next[key] + ' ===? NOT EQUAL');
+          equal = false;
+        }
+        });
+        return equal;
+    }
     render() {
         var ticket = this.props.ticket;
         var isSelected = this.props.selectedTicket === ticket;

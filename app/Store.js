@@ -13,16 +13,9 @@ define(["require", "exports", 'immutable'], function (require, exports, Immutabl
             });
         }
         Store.prototype.insertTicket = function (ticket) {
-            var immutable = Immutable.fromJS(ticket);
-            console.log(ticket);
-            console.log(this.reconciliation);
-            var tickets = this.reconciliation.get('tickets');
-            console.log(tickets);
-            var updated = tickets.set(ticket);
-            console.log(tickets);
-            console.log(this.reconciliation);
-            console.log('===? ' + (this.reconciliation === updated));
-            this.reconciliation = updated;
+            var ticketMerge = {};
+            ticketMerge[ticket.key] = ticket;
+            this.reconciliation = this.reconciliation.mergeDeep({ tickets: ticketMerge });
             this.onChanged(this.reconciliation);
         };
         return Store;
