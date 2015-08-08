@@ -80,12 +80,24 @@ export class NavigationItem extends NavigationView {
 
 var reconciliationStore = new Freezer<models.Reconciliation>({
     menu: {
-        categories: {}
+        categories: {
+          '0': {
+            key: '0',
+            name: 'Dinner Entrees',
+            items: {
+              '0': {
+                key: '0',
+                name: '14oz Ribeye',
+                price: 20
+              }
+            }
+          }
+        }
     },
     tickets: {
       '0': { key: '0', name: 'Justin' }
     }
-});
+}, { live: false });
 
 
 

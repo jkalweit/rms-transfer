@@ -57,12 +57,24 @@ define(["require", "exports", 'react/addons', 'freezer-js', './MenuViews', './Re
     exports.NavigationItem = NavigationItem;
     var reconciliationStore = new Freezer({
         menu: {
-            categories: {}
+            categories: {
+                '0': {
+                    key: '0',
+                    name: 'Dinner Entrees',
+                    items: {
+                        '0': {
+                            key: '0',
+                            name: '14oz Ribeye',
+                            price: 20
+                        }
+                    }
+                }
+            }
         },
         tickets: {
             '0': { key: '0', name: 'Justin' }
         }
-    });
+    }, { live: false });
     var MainView = (function (_super) {
         __extends(MainView, _super);
         function MainView(props) {

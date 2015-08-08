@@ -8,6 +8,7 @@
 	"files" : [
 		"Models.ts",
 		"DataStores.ts",
+		"Store.ts",
 		"BaseViews.tsx",
 		"VendorViews.tsx",
 		"InventoryViews.tsx",

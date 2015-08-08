@@ -1,5 +1,4 @@
 /// <reference path="../typings/tsd.d.ts" />
-/// <reference path="./freezer-js.d.ts" />
 /// <reference path="./Models.ts" />
 
 import React = require('react/addons');
@@ -7,21 +6,33 @@ import moment = require('moment');
 
 import models = require('./Models');
 
-import bv = require('./BaseViews');
+//import bv = require('./BaseViews');
 
 
 
-
-
-
+export class FreezerView<T> extends React.Component<any, any> {
+  shallowCompare(first, next) {
+    
+  }
+}
 
 
 export interface MenuViewProps {
     menu: models.MenuModel;
 }
-export class MenuView extends React.Component<MenuViewProps, {}> {
-    shouldComponentUpdate(nextProps: MenuViewProps) {
-        return this.props.menu !== nextProps.menu;
+export interface MenuViewState {
+    selectedCategory: models.MenuCategoryModel;
+}
+export class MenuView extends React.Component<MenuViewProps, MenuViewState> {
+  constructor(props) {
+    super(props);
+
+  }
+    shouldComponentUpdate(nextProps: MenuViewProps, nextState: MenuViewState) {
+        return this.props.menu !== nextProps.menu && this.state.selectedCategory !== nextState.selectedCategory;
+    }
+    handleSelectCategory(category: MenuCategoriesView) {
+        this.setState({ selectedCategory: category });
     }
     render() {
         console.log('   Render: MenuView');
@@ -32,9 +43,6 @@ export class MenuView extends React.Component<MenuViewProps, {}> {
         );
     }
 }
-
-
-
 
 
 
@@ -49,12 +57,6 @@ export class MenuCategoriesView extends React.Component<MenuCategoriesViewProps,
         return shouldUpdate;
     }
     doTest() {
-        /*console.log('Before: ' + JSON.stringify(this.props.categories));
-        this.props.categories['0'].name = 'IT CHANGED!';
-        console.log('After: ' + JSON.stringify(this.props.categories));
-        this.props.categories['0'].set('name', 'IT REALLY CHANGED!');
-        console.log('After again: ' + JSON.stringify(this.props.categories));*/
-
         var category: models.MenuCategoryModel = {
             key: new Date().toISOString(),
             name: 'Dinner Entrees',
@@ -64,9 +66,6 @@ export class MenuCategoriesView extends React.Component<MenuCategoriesViewProps,
         (this.props.categories as any).set(category.key, category);
     }
     render() {
-        /*var nodes = Object.keys(this.props.categories).map((id) => {
-            return (<li key={id}>{ this.props.categories[id].name }</li>);
-        });*/
         var nodes = Object.keys(this.props.categories).map((key) => {
             return (<MenuCategoryView key={key} category={ this.props.categories[key] }></MenuCategoryView>);
         });
@@ -100,10 +99,65 @@ export class MenuCategoryView extends React.Component<MenuCategoryViewProps, any
         (this.props.category as any).set('name', 'I CHANGED IT!');
     }
     render() {
+      console.log('   Render: MenuCategory');
         return (
           <li onClick={this.doTest.bind(this)}>{ this.props.category.name }</li>);
     }
 }
+
+
+
+
+
+
+export interface MenuItemViewProps {
+  menuItem: models.MenuItemModel;
+  onSelected: (menuItem: models.MenuItemModel) => void;
+}
+export class MenuItemView extends React.Component<MenuItemViewProps, {}> {
+    render() {
+        return (
+            <li>{this.props.menuItem.name}</li>
+        );
+    }
+}
+
+
+
+
+
+/*export class MenuItemEditView extends bv.SimpleItemEditView {
+    doFocus() {
+        var input = React.findDOMNode(this.refs['name']) as any;
+        input.focus();
+        input.select();
+    }
+    render() {
+
+        var hide = { float: 'right', display: this.props.onRemove ? 'block' : 'none' };
+
+        return (
+            <div>
+          <h2>Edit Menu Item</h2>
+          <div className="row"><span className="col-4">Name: </span><input className="col-6" ref="name" value={ this.state.entity.name } onChange={ this.handleChange.bind(this, "name") } /></div>
+          <div className="row"><span className="col-4">Note: </span><input className="col-10" value={ this.state.entity.note } onChange={ this.handleChange.bind(this, "note") } /></div>
+          <div className="row"><span className="col-4">Price: </span><input className="col-2" value={ this.state.entity.price } onChange={ this.handleChange.bind(this, "price") } /></div>
+          <bv.SimpleConfirmView
+          onCancel={() => { this.cancel() } }
+          onSave={() => { this.save() } }
+          onRemove={ this.props.onRemove ? () => { this.remove() } : null }
+          isDirty={this.state.isDirty}
+          ></bv.SimpleConfirmView>
+            </div>
+        );
+    }
+}*/
+
+
+
+
+
+
 
 
 /*export interface MenuViewState {

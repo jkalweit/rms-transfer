@@ -1,5 +1,4 @@
 /// <reference path="../typings/tsd.d.ts" />
-/// <reference path="./freezer-js.d.ts" />
 /// <reference path="./Models.ts" />
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -7,13 +6,26 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 define(["require", "exports", 'react/addons'], function (require, exports, React) {
-    var MenuView = (function (_super) {
-        __extends(MenuView, _super);
-        function MenuView() {
+    var FreezerView = (function (_super) {
+        __extends(FreezerView, _super);
+        function FreezerView() {
             _super.apply(this, arguments);
         }
-        MenuView.prototype.shouldComponentUpdate = function (nextProps) {
-            return this.props.menu !== nextProps.menu;
+        FreezerView.prototype.shallowCompare = function (first, next) {
+        };
+        return FreezerView;
+    })(React.Component);
+    exports.FreezerView = FreezerView;
+    var MenuView = (function (_super) {
+        __extends(MenuView, _super);
+        function MenuView(props) {
+            _super.call(this, props);
+        }
+        MenuView.prototype.shouldComponentUpdate = function (nextProps, nextState) {
+            return this.props.menu !== nextProps.menu && this.state.selectedCategory !== nextState.selectedCategory;
+        };
+        MenuView.prototype.handleSelectCategory = function (category) {
+            this.setState({ selectedCategory: category });
         };
         MenuView.prototype.render = function () {
             console.log('   Render: MenuView');
@@ -42,11 +54,6 @@ define(["require", "exports", 'react/addons'], function (require, exports, React
             return shouldUpdate;
         };
         MenuCategoriesView.prototype.doTest = function () {
-            /*console.log('Before: ' + JSON.stringify(this.props.categories));
-            this.props.categories['0'].name = 'IT CHANGED!';
-            console.log('After: ' + JSON.stringify(this.props.categories));
-            this.props.categories['0'].set('name', 'IT REALLY CHANGED!');
-            console.log('After again: ' + JSON.stringify(this.props.categories));*/
             var category = {
                 key: new Date().toISOString(),
                 name: 'Dinner Entrees',
@@ -87,10 +94,22 @@ define(["require", "exports", 'react/addons'], function (require, exports, React
             this.props.category.set('name', 'I CHANGED IT!');
         };
         MenuCategoryView.prototype.render = function () {
+            console.log('   Render: MenuCategory');
             return (React.createElement("li", {"onClick": this.doTest.bind(this)}, this.props.category.name));
         };
         return MenuCategoryView;
     })(React.Component);
     exports.MenuCategoryView = MenuCategoryView;
+    var MenuItemView = (function (_super) {
+        __extends(MenuItemView, _super);
+        function MenuItemView() {
+            _super.apply(this, arguments);
+        }
+        MenuItemView.prototype.render = function () {
+            return (React.createElement("li", null, this.props.menuItem.name));
+        };
+        return MenuItemView;
+    })(React.Component);
+    exports.MenuItemView = MenuItemView;
 });
 //# sourceMappingURL=MenuViews.js.map

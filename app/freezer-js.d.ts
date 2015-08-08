@@ -1,5 +1,5 @@
 interface Freezer_Static {
-    new<T>(obj: T):IFreezer<T>;
+    new<T>(obj: T, options?: { live: boolean }):IFreezer<T>;
 }
 interface IFreezer<T> {
   get(): T;
