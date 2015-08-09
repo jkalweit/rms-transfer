@@ -16,6 +16,39 @@ define(["require", "exports", 'react/addons', './DataStores'], function (require
         return Utils;
     })();
     exports.Utils = Utils;
+    var FreezerView = (function (_super) {
+        __extends(FreezerView, _super);
+        function FreezerView() {
+            _super.apply(this, arguments);
+            this.name = 'FreezerView';
+        }
+        FreezerView.prototype.isShallowDiff = function (curr, next) {
+            var _this = this;
+            var equal = true;
+            if (curr === null || next === null || typeof curr !== 'object' || typeof next !== 'object') {
+                return curr !== next;
+            }
+            Object.keys(next).forEach(function (key) {
+                if (typeof next[key] === 'function') {
+                }
+                else if ((next[key] !== curr[key])) {
+                    console.log(_this.name + ' DIFF: ' + key + ': ' + next[key]);
+                    equal = false;
+                }
+            });
+            return !equal;
+        };
+        FreezerView.prototype.shouldComponentUpdate = function (nextProps, nextState) {
+            var propsDiff = this.isShallowDiff(this.props, nextProps);
+            var stateDiff = this.isShallowDiff(this.state, nextState);
+            var shouldUpdate = propsDiff || stateDiff;
+            if (shouldUpdate)
+                console.log(this.name + ': UPDATE');
+            return shouldUpdate;
+        };
+        return FreezerView;
+    })(React.Component);
+    exports.FreezerView = FreezerView;
     var Button = (function (_super) {
         __extends(Button, _super);
         function Button(props) {

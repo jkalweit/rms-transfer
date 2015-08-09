@@ -19,7 +19,7 @@
       width: 100%;
       color: #FFFFFF;
       margin: 0;
-      background-color: @mdc-blue-500;
+      background-color: @mdc-blue-700;
       padding: 10px;
       border-bottom: 1px solid @mdc-black-lighter;
     }
@@ -49,9 +49,22 @@
           margin: 0;
         }
 
+        transition: all 100ms ease-out;
+        transition-property: color, background-color;
+
+        &:hover {
+          color: #FFFFFF;
+          background-color: @mdc-blue-300;
+        }
+
         &.active {
-            color: #FFFFFF;
-            background-color: @mdc-blue-500;
+          color: #FFFFFF;
+          background-color: @mdc-blue-500;
+        }
+
+        &:active {
+          color: #FFFFFF;
+          background-color: @mdc-blue-900;
         }
       }
     }

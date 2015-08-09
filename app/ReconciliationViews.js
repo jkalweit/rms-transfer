@@ -5,13 +5,12 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-define(["require", "exports", 'react/addons', 'freezer-js'], function (require, exports, React, Freezer) {
-    var PureRenderMixin = require('react/addons').addons.PureRenderMixin;
+define(["require", "exports", 'react/addons', './MenuViews', './BaseViews'], function (require, exports, React, menu, bv) {
     var ReconciliationView = (function (_super) {
         __extends(ReconciliationView, _super);
         function ReconciliationView(props) {
             _super.call(this, props);
-            this.mixins = [PureRenderMixin];
+            this.name = 'ReconciliationView';
             this.state = {
                 selectedTicket: null
             };
@@ -22,34 +21,20 @@ define(["require", "exports", 'react/addons', 'freezer-js'], function (require, 
         };
         ReconciliationView.prototype.render = function () {
             console.log('   Render: Reconciliation');
-            return (React.createElement("div", {"className": "reconciliation"}, React.createElement(TicketsView, {"tickets": this.props.tickets, "onSelectTicket": this.handleSelectTicket.bind(this), "selectedTicket": this.state.selectedTicket})));
+            return (React.createElement("div", {"className": "reconciliation"}, React.createElement(TicketsView, {"tickets": this.props.tickets, "onSelectTicket": this.handleSelectTicket.bind(this), "selectedTicket": this.state.selectedTicket}), this.state.selectedTicket ? (React.createElement(TicketDetailsView, {"ticket": this.state.selectedTicket})) : null, React.createElement(menu.MenuView, {"menu": this.props.menu})));
         };
         return ReconciliationView;
-    })(React.Component);
+    })(bv.FreezerView);
     exports.ReconciliationView = ReconciliationView;
     var TicketsView = (function (_super) {
         __extends(TicketsView, _super);
         function TicketsView(props) {
             _super.call(this, props);
-            this.stateStore = new Freezer({
-                filteredTickets: this.getFilteredTickets('', props.tickets)
-            });
+            this.name = '  TicketsView';
             this.state = {
-                store: this.stateStore.get()
+                filteredTickets: this.getFilteredTickets('', this.props.tickets)
             };
         }
-        TicketsView.prototype.componentDidMount = function () {
-            var _this = this;
-            this.stateStore.on('update', function () {
-                _this.setState({ store: _this.stateStore.get() });
-            });
-        };
-        TicketsView.prototype.shouldComponentUpdate = function (nextProps, nextState) {
-            var shouldUpdate = this.props.tickets !== nextProps.tickets
-                || this.props.selectedTicket !== nextProps.selectedTicket
-                || this.state.store !== nextState.store;
-            return shouldUpdate;
-        };
         TicketsView.prototype.handleFilterChanged = function (element, e) {
             var tickets = this.props.tickets;
             if (e.keyCode === 13) {
@@ -62,7 +47,7 @@ define(["require", "exports", 'react/addons', 'freezer-js'], function (require, 
             }
             var filter = e.target.value;
             var filteredTickets = this.getFilteredTickets(filter, tickets);
-            this.state.store.set('filteredTickets', filteredTickets);
+            this.setState({ filteredTickets: filteredTickets });
         };
         TicketsView.prototype.getFilteredTickets = function (filter, tickets) {
             var normalized = filter.trim().toLowerCase();
@@ -78,8 +63,7 @@ define(["require", "exports", 'react/addons', 'freezer-js'], function (require, 
         };
         TicketsView.prototype.render = function () {
             var _this = this;
-            console.log('     Render: Tickets List');
-            var tickets = this.state.store.filteredTickets;
+            var tickets = this.state.filteredTickets;
             var nodes = Object.keys(tickets).map(function (key) {
                 var ticket = tickets[key];
                 var isSelected = _this.props.selectedTicket === ticket;
@@ -96,17 +80,14 @@ define(["require", "exports", 'react/addons', 'freezer-js'], function (require, 
             }}), React.createElement("ul", null, nodes)));
         };
         return TicketsView;
-    })(React.Component);
+    })(bv.FreezerView);
     exports.TicketsView = TicketsView;
     var TicketView = (function (_super) {
         __extends(TicketView, _super);
         function TicketView() {
             _super.apply(this, arguments);
+            this.name = '    TicketView';
         }
-        TicketView.prototype.shouldComponentUpdate = function (nextProps) {
-            var shouldUpdate = this.props.ticket !== nextProps.ticket || this.props.isSelected !== nextProps.isSelected;
-            return shouldUpdate;
-        };
         TicketView.prototype.render = function () {
             var _this = this;
             var ticket = this.props.ticket;
@@ -114,7 +95,21 @@ define(["require", "exports", 'react/addons', 'freezer-js'], function (require, 
             return (React.createElement("li", {"className": this.props.isSelected ? 'active' : '', "onClick": function () { _this.props.onSelect(ticket); }}, ticket.name));
         };
         return TicketView;
-    })(React.Component);
+    })(bv.FreezerView);
     exports.TicketView = TicketView;
+    var TicketDetailsView = (function (_super) {
+        __extends(TicketDetailsView, _super);
+        function TicketDetailsView() {
+            _super.apply(this, arguments);
+            this.name = '        TicketDetailsView';
+        }
+        TicketDetailsView.prototype.render = function () {
+            var ticket = this.props.ticket;
+            console.log('         Render: TicketDetails: ' + ticket.name);
+            return (React.createElement("div", {"className": "ticket-details"}, React.createElement("h3", null, ticket.name)));
+        };
+        return TicketDetailsView;
+    })(bv.FreezerView);
+    exports.TicketDetailsView = TicketDetailsView;
 });
 //# sourceMappingURL=ReconciliationViews.js.map

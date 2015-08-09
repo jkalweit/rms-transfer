@@ -16,6 +16,40 @@ export class Utils {
     }
 }
 
+export class FreezerView<P, S> extends React.Component<P, S> {
+    name: string = 'FreezerView'; //override for debugging
+    isShallowDiff(curr: any, next: any): boolean {
+        var equal = true;
+        if (curr === null || next === null || typeof curr !== 'object' || typeof next !== 'object') {
+            //console.log('isShallowDiff: an argument is either null or not an object, doing === compare.');
+            return curr !== next;
+        }
+        Object.keys(next).forEach((key) => {
+            if (typeof next[key] === 'function') {
+                //ignore functions
+            }
+            else if ((next[key] !== curr[key])) {
+                console.log(this.name + ' DIFF: ' + key + ': ' + next[key]);
+                equal = false;
+            }
+        });
+        return !equal;
+    }
+    shouldComponentUpdate(nextProps: MenuViewProps, nextState: MenuViewState) {
+        var propsDiff = this.isShallowDiff(this.props, nextProps);
+        var stateDiff = this.isShallowDiff(this.state, nextState);
+        var shouldUpdate = propsDiff || stateDiff;
+        if (shouldUpdate) console.log(this.name + ': UPDATE');
+        return shouldUpdate;
+    }
+}
+
+
+
+
+
+
+
 export class Button extends React.Component<any, any> {
     constructor(props) {
         super(props);

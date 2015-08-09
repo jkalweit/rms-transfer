@@ -6,39 +6,35 @@ import moment = require('moment');
 
 import models = require('./Models');
 
-//import bv = require('./BaseViews');
+import bv = require('./BaseViews');
 
 
 
-export class FreezerView<T> extends React.Component<any, any> {
-  shallowCompare(first, next) {
-    
-  }
-}
+
+
 
 
 export interface MenuViewProps {
     menu: models.MenuModel;
 }
 export interface MenuViewState {
-    selectedCategory: models.MenuCategoryModel;
+    selectedCategory?: models.MenuCategoryModel;
+    selectedItem?: models.MenuItemModel;
 }
-export class MenuView extends React.Component<MenuViewProps, MenuViewState> {
-  constructor(props) {
-    super(props);
-
-  }
-    shouldComponentUpdate(nextProps: MenuViewProps, nextState: MenuViewState) {
-        return this.props.menu !== nextProps.menu && this.state.selectedCategory !== nextState.selectedCategory;
-    }
-    handleSelectCategory(category: MenuCategoriesView) {
-        this.setState({ selectedCategory: category });
+export class MenuView extends bv.FreezerView<MenuViewProps, MenuViewState> {
+    name: string = '  MenuView';
+    constructor(props) {
+        super(props);
+        this.state = { selectedCategory: null }
     }
     render() {
-        console.log('   Render: MenuView');
+        console.log(this.name + ': Render');
+        var menuItems = {} as {[key: string]: models.MenuItemModel};
+        if(this.state.selectedCategory) menuItems = this.state.selectedCategory.items;
         return (
             <div className="menu">
-              <MenuCategoriesView categories={this.props.menu.categories}></MenuCategoriesView>
+              <MenuCategoriesView categories={this.props.menu.categories} selectedCategory={ this.state.selectedCategory } onSelectCategory={ (category: models.MenuCategoryModel) => { this.setState({ selectedCategory: category }); } }></MenuCategoriesView>
+              <MenuItemsView items={menuItems} selectedItem={this.state.selectedItem} onSelectItem={ (item: models.MenuItemModel) => { this.setState({ selectedItem: item}); } }></MenuItemsView>
             </div>
         );
     }
@@ -46,16 +42,15 @@ export class MenuView extends React.Component<MenuViewProps, MenuViewState> {
 
 
 
-export class MenuCategoriesViewProps {
+
+
+export interface MenuCategoriesViewProps {
     categories: { [key: string]: models.MenuCategoryModel };
+    selectedCategory: models.MenuCategoryModel;
+    onSelectCategory(category: models.MenuCategoryModel): void;
 }
-export class MenuCategoriesView extends React.Component<MenuCategoriesViewProps, any> {
-    shouldComponentUpdate(nextProps: MenuCategoriesViewProps) {
-        var shouldUpdate = this.props.categories != nextProps.categories;
-        if (shouldUpdate) console.log('MenuCategoriesView: update');
-        else console.log('MenuCategoriesView: NO UPDATE!');
-        return shouldUpdate;
-    }
+export class MenuCategoriesView extends bv.FreezerView<MenuCategoriesViewProps, any> {
+    name: string = '    MenuCategoriesView';
     doTest() {
         var category: models.MenuCategoryModel = {
             key: new Date().toISOString(),
@@ -66,8 +61,11 @@ export class MenuCategoriesView extends React.Component<MenuCategoriesViewProps,
         (this.props.categories as any).set(category.key, category);
     }
     render() {
+        console.log(this.name + ': Render');
         var nodes = Object.keys(this.props.categories).map((key) => {
-            return (<MenuCategoryView key={key} category={ this.props.categories[key] }></MenuCategoryView>);
+            var category = this.props.categories[key];
+            var isSelected = category === this.props.selectedCategory;
+            return (<MenuCategoryView key={key} category={ category } isSelected={isSelected} onSelectCategory={ this.props.onSelectCategory.bind(this) }></MenuCategoryView>);
         });
         return (
             <div className="menu-categories">
@@ -84,24 +82,20 @@ export class MenuCategoriesView extends React.Component<MenuCategoriesViewProps,
 
 
 
-export class MenuCategoryViewProps {
+export interface MenuCategoryViewProps {
     key: string;
     category: models.MenuCategoryModel;
+    isSelected: boolean;
+    onSelectCategory(cateogyr: models.MenuCategoryModel): void;
 }
-export class MenuCategoryView extends React.Component<MenuCategoryViewProps, any> {
-    shouldComponentUpdate(nextProps: MenuCategoryViewProps) {
-        var shouldUpdate = this.props.category != nextProps.category;
-        if (shouldUpdate) console.log('MenuCategoryView: update: ' + this.props.category.name + ': ' + nextProps.category.name);
-        else console.log('MenuCategoryView: NO UPDATE: ' + this.props.category.name);
-        return shouldUpdate;
-    }
-    doTest() {
-        (this.props.category as any).set('name', 'I CHANGED IT!');
-    }
+export class MenuCategoryView extends bv.FreezerView<MenuCategoryViewProps, any> {
+    name: string = '      MenuCategoryView';
     render() {
-      console.log('   Render: MenuCategory');
+        console.log(this.name + ': Render ' + this.props.category.name);
+        var className = this.props.isSelected ? 'active' : '';
         return (
-          <li onClick={this.doTest.bind(this)}>{ this.props.category.name }</li>);
+            <li className={className} onClick={() => { this.props.onSelectCategory(this.props.category); } }>{ this.props.category.name }</li>
+        );
     }
 }
 
@@ -109,15 +103,53 @@ export class MenuCategoryView extends React.Component<MenuCategoryViewProps, any
 
 
 
+
+
+
+
+
+
+
+
+
+
+export interface MenuItemsViewProps {
+    items: { [key: string]: models.MenuItemModel };
+    selectedItem: models.MenuItemModel;
+    onSelectItem(category: models.MenuItemModel): void;
+}
+export class MenuItemsView extends bv.FreezerView<MenuItemsViewProps, any> {
+    name: string = '    MenuItemsView';
+    render() {
+        console.log(this.name + ': Render');
+        var nodes = Object.keys(this.props.items).map((key) => {
+            var item = this.props.items[key];
+            var isSelected = item === this.props.selectedItem;
+            return (<MenuItemView key={item.key} item={ item } isSelected={isSelected} onSelect={ this.props.onSelectItem.bind(this) }></MenuItemView>);
+        });
+        return (
+            <div className="menu-items">
+              <h3>Menu Items</h3>
+              <ul>
+                { nodes }
+              </ul>
+            </div>
+        );
+    }
+}
 
 export interface MenuItemViewProps {
-  menuItem: models.MenuItemModel;
-  onSelected: (menuItem: models.MenuItemModel) => void;
+    key: string;
+    item: models.MenuItemModel;
+    onSelect: (menuItem: models.MenuItemModel) => void;
+    isSelected: boolean;
 }
-export class MenuItemView extends React.Component<MenuItemViewProps, {}> {
+export class MenuItemView extends bv.FreezerView<MenuItemViewProps, {}> {
+    name: string = 'MenuItemView';
     render() {
+        var className = this.props.isSelected ? 'active' : '';
         return (
-            <li>{this.props.menuItem.name}</li>
+            <li className={className} onClick={ () => { this.props.onSelect(this.props.item); } }>{this.props.item.name}</li>
         );
     }
 }

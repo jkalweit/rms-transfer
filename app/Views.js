@@ -66,6 +66,16 @@ define(["require", "exports", 'react/addons', 'freezer-js', './MenuViews', './Re
                             key: '0',
                             name: '14oz Ribeye',
                             price: 20
+                        },
+                        '1': {
+                            key: '1',
+                            name: 'Cajun Chicken',
+                            price: 14
+                        },
+                        '2': {
+                            key: '2',
+                            name: 'Chicken Tenders',
+                            price: 10
                         }
                     }
                 }
@@ -95,7 +105,7 @@ define(["require", "exports", 'react/addons', 'freezer-js', './MenuViews', './Re
         };
         MainView.prototype.render = function () {
             var rec = this.state.reconciliation;
-            return (React.createElement("div", null, React.createElement("div", {"className": "sticky-header"}, React.createElement("ul", null, React.createElement("li", null, React.createElement(NavigationItem, {"hash": "#"}, React.createElement("span", {"className": "col-2"}, "RMS"))), React.createElement("li", null, React.createElement(NavigationItem, {"hash": "#reconciliation"}, React.createElement("span", {"className": "col-6"}, "Reconciliation"))), React.createElement("li", null, React.createElement(NavigationItem, {"hash": "#menu"}, React.createElement("span", {"className": "col-5"}, "Menu"))), React.createElement("li", null, React.createElement(NavigationItem, {"hash": "#kitchen"}, React.createElement("span", {"className": "col-5"}, "Kitchen"))))), React.createElement(NavigationView, {"hash": "#"}, React.createElement("h1", null, "Welcome to RMS"), React.createElement("p", null, "There will be a dashboard here later."), React.createElement("p", null, "Use the navigation above to select a location.")), React.createElement(NavigationView, {"hash": "#reconciliation"}, React.createElement(recViews.ReconciliationView, {"tickets": rec.tickets})), React.createElement(NavigationView, {"hash": "#menu"}, React.createElement(menuViews.MenuView, {"menu": rec.menu})), React.createElement(NavigationView, {"hash": "#kitchen"}, React.createElement("h1", null, "The kitchen!"))));
+            return (React.createElement("div", null, React.createElement("div", {"className": "sticky-header"}, React.createElement("ul", null, React.createElement("li", null, React.createElement(NavigationItem, {"hash": "#"}, React.createElement("span", {"className": "col-2"}, "RMS"))), React.createElement("li", null, React.createElement(NavigationItem, {"hash": "#reconciliation"}, React.createElement("span", {"className": "col-6"}, "Reconciliation"))), React.createElement("li", null, React.createElement(NavigationItem, {"hash": "#menu"}, React.createElement("span", {"className": "col-5"}, "Menu"))), React.createElement("li", null, React.createElement(NavigationItem, {"hash": "#kitchen"}, React.createElement("span", {"className": "col-5"}, "Kitchen"))))), React.createElement(NavigationView, {"hash": "#"}, React.createElement("h1", null, "Welcome to RMS"), React.createElement("p", null, "There will be a dashboard here later."), React.createElement("p", null, "Use the navigation above to select a location.")), React.createElement(NavigationView, {"hash": "#reconciliation"}, React.createElement(recViews.ReconciliationView, {"tickets": rec.tickets, "menu": rec.menu})), React.createElement(NavigationView, {"hash": "#menu"}, React.createElement(menuViews.MenuView, {"menu": rec.menu})), React.createElement(NavigationView, {"hash": "#kitchen"}, React.createElement("h1", null, "The kitchen!"))));
         };
         return MainView;
     })(React.Component);

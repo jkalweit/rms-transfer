@@ -5,54 +5,31 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-define(["require", "exports", 'react/addons'], function (require, exports, React) {
-    var FreezerView = (function (_super) {
-        __extends(FreezerView, _super);
-        function FreezerView() {
-            _super.apply(this, arguments);
-        }
-        FreezerView.prototype.shallowCompare = function (first, next) {
-        };
-        return FreezerView;
-    })(React.Component);
-    exports.FreezerView = FreezerView;
+define(["require", "exports", 'react/addons', './BaseViews'], function (require, exports, React, bv) {
     var MenuView = (function (_super) {
         __extends(MenuView, _super);
         function MenuView(props) {
             _super.call(this, props);
+            this.name = '  MenuView';
+            this.state = { selectedCategory: null };
         }
-        MenuView.prototype.shouldComponentUpdate = function (nextProps, nextState) {
-            return this.props.menu !== nextProps.menu && this.state.selectedCategory !== nextState.selectedCategory;
-        };
-        MenuView.prototype.handleSelectCategory = function (category) {
-            this.setState({ selectedCategory: category });
-        };
         MenuView.prototype.render = function () {
-            console.log('   Render: MenuView');
-            return (React.createElement("div", {"className": "menu"}, React.createElement(MenuCategoriesView, {"categories": this.props.menu.categories})));
+            var _this = this;
+            console.log(this.name + ': Render');
+            var menuItems = {};
+            if (this.state.selectedCategory)
+                menuItems = this.state.selectedCategory.items;
+            return (React.createElement("div", {"className": "menu"}, React.createElement(MenuCategoriesView, {"categories": this.props.menu.categories, "selectedCategory": this.state.selectedCategory, "onSelectCategory": function (category) { _this.setState({ selectedCategory: category }); }}), React.createElement(MenuItemsView, {"items": menuItems, "selectedItem": this.state.selectedItem, "onSelectItem": function (item) { _this.setState({ selectedItem: item }); }})));
         };
         return MenuView;
-    })(React.Component);
+    })(bv.FreezerView);
     exports.MenuView = MenuView;
-    var MenuCategoriesViewProps = (function () {
-        function MenuCategoriesViewProps() {
-        }
-        return MenuCategoriesViewProps;
-    })();
-    exports.MenuCategoriesViewProps = MenuCategoriesViewProps;
     var MenuCategoriesView = (function (_super) {
         __extends(MenuCategoriesView, _super);
         function MenuCategoriesView() {
             _super.apply(this, arguments);
+            this.name = '    MenuCategoriesView';
         }
-        MenuCategoriesView.prototype.shouldComponentUpdate = function (nextProps) {
-            var shouldUpdate = this.props.categories != nextProps.categories;
-            if (shouldUpdate)
-                console.log('MenuCategoriesView: update');
-            else
-                console.log('MenuCategoriesView: NO UPDATE!');
-            return shouldUpdate;
-        };
         MenuCategoriesView.prototype.doTest = function () {
             var category = {
                 key: new Date().toISOString(),
@@ -63,53 +40,64 @@ define(["require", "exports", 'react/addons'], function (require, exports, React
         };
         MenuCategoriesView.prototype.render = function () {
             var _this = this;
+            console.log(this.name + ': Render');
             var nodes = Object.keys(this.props.categories).map(function (key) {
-                return (React.createElement(MenuCategoryView, {"key": key, "category": _this.props.categories[key]}));
+                var category = _this.props.categories[key];
+                var isSelected = category === _this.props.selectedCategory;
+                return (React.createElement(MenuCategoryView, {"key": key, "category": category, "isSelected": isSelected, "onSelectCategory": _this.props.onSelectCategory.bind(_this)}));
             });
             return (React.createElement("div", {"className": "menu-categories"}, React.createElement("h3", null, "Menu Categories"), React.createElement("button", {"onClick": this.doTest.bind(this)}, "Do Test"), React.createElement("ul", null, nodes)));
         };
         return MenuCategoriesView;
-    })(React.Component);
+    })(bv.FreezerView);
     exports.MenuCategoriesView = MenuCategoriesView;
-    var MenuCategoryViewProps = (function () {
-        function MenuCategoryViewProps() {
-        }
-        return MenuCategoryViewProps;
-    })();
-    exports.MenuCategoryViewProps = MenuCategoryViewProps;
     var MenuCategoryView = (function (_super) {
         __extends(MenuCategoryView, _super);
         function MenuCategoryView() {
             _super.apply(this, arguments);
+            this.name = '      MenuCategoryView';
         }
-        MenuCategoryView.prototype.shouldComponentUpdate = function (nextProps) {
-            var shouldUpdate = this.props.category != nextProps.category;
-            if (shouldUpdate)
-                console.log('MenuCategoryView: update: ' + this.props.category.name + ': ' + nextProps.category.name);
-            else
-                console.log('MenuCategoryView: NO UPDATE: ' + this.props.category.name);
-            return shouldUpdate;
-        };
-        MenuCategoryView.prototype.doTest = function () {
-            this.props.category.set('name', 'I CHANGED IT!');
-        };
         MenuCategoryView.prototype.render = function () {
-            console.log('   Render: MenuCategory');
-            return (React.createElement("li", {"onClick": this.doTest.bind(this)}, this.props.category.name));
+            var _this = this;
+            console.log(this.name + ': Render ' + this.props.category.name);
+            var className = this.props.isSelected ? 'active' : '';
+            return (React.createElement("li", {"className": className, "onClick": function () { _this.props.onSelectCategory(_this.props.category); }}, this.props.category.name));
         };
         return MenuCategoryView;
-    })(React.Component);
+    })(bv.FreezerView);
     exports.MenuCategoryView = MenuCategoryView;
+    var MenuItemsView = (function (_super) {
+        __extends(MenuItemsView, _super);
+        function MenuItemsView() {
+            _super.apply(this, arguments);
+            this.name = '    MenuItemsView';
+        }
+        MenuItemsView.prototype.render = function () {
+            var _this = this;
+            console.log(this.name + ': Render');
+            var nodes = Object.keys(this.props.items).map(function (key) {
+                var item = _this.props.items[key];
+                var isSelected = item === _this.props.selectedItem;
+                return (React.createElement(MenuItemView, {"key": item.key, "item": item, "isSelected": isSelected, "onSelect": _this.props.onSelectItem.bind(_this)}));
+            });
+            return (React.createElement("div", {"className": "menu-items"}, React.createElement("h3", null, "Menu Items"), React.createElement("ul", null, nodes)));
+        };
+        return MenuItemsView;
+    })(bv.FreezerView);
+    exports.MenuItemsView = MenuItemsView;
     var MenuItemView = (function (_super) {
         __extends(MenuItemView, _super);
         function MenuItemView() {
             _super.apply(this, arguments);
+            this.name = 'MenuItemView';
         }
         MenuItemView.prototype.render = function () {
-            return (React.createElement("li", null, this.props.menuItem.name));
+            var _this = this;
+            var className = this.props.isSelected ? 'active' : '';
+            return (React.createElement("li", {"className": className, "onClick": function () { _this.props.onSelect(_this.props.item); }}, this.props.item.name));
         };
         return MenuItemView;
-    })(React.Component);
+    })(bv.FreezerView);
     exports.MenuItemView = MenuItemView;
 });
 //# sourceMappingURL=MenuViews.js.map

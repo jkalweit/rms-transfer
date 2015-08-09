@@ -89,6 +89,16 @@ var reconciliationStore = new Freezer<models.Reconciliation>({
                 key: '0',
                 name: '14oz Ribeye',
                 price: 20
+              },
+              '1': {
+                key: '1',
+                name: 'Cajun Chicken',
+                price: 14
+              },
+              '2': {
+                key: '2',
+                name: 'Chicken Tenders',
+                price: 10
               }
             }
           }
@@ -137,7 +147,7 @@ export class MainView extends React.Component<{}, MainViewState> {
               <p>There will be a dashboard here later.</p>
               <p>Use the navigation above to select a location.</p>
             </NavigationView>
-            <NavigationView hash="#reconciliation"><recViews.ReconciliationView tickets={rec.tickets}></recViews.ReconciliationView></NavigationView>
+            <NavigationView hash="#reconciliation"><recViews.ReconciliationView tickets={rec.tickets} menu={rec.menu}></recViews.ReconciliationView></NavigationView>
             <NavigationView hash="#menu"><menuViews.MenuView menu={rec.menu}></menuViews.MenuView></NavigationView>
             <NavigationView hash="#kitchen"><h1>The kitchen!</h1></NavigationView>
           { /*

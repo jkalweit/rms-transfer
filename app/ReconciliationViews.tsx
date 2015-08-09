@@ -6,22 +6,19 @@ import Freezer = require('freezer-js');
 import moment = require('moment');
 
 import models = require('./Models');
-
+import menu = require('./MenuViews');
 import bv = require('./BaseViews');
-
-
-
-var PureRenderMixin = require('react/addons').addons.PureRenderMixin;
 
 
 export interface ReconciliationViewProps {
     tickets: { [key: string]: models.TicketModel };
+    menu: models.MenuModel;
 }
 export interface ReconciliationViewState {
     selectedTicket: models.TicketModel;
 }
-export class ReconciliationView extends React.Component<ReconciliationViewProps, ReconciliationViewState> {
-    mixins = [PureRenderMixin]
+export class ReconciliationView extends bv.FreezerView<ReconciliationViewProps, ReconciliationViewState> {
+    name: string = 'ReconciliationView';
     constructor(props) {
         super(props);
         this.state = {
@@ -39,13 +36,8 @@ export class ReconciliationView extends React.Component<ReconciliationViewProps,
             <TicketsView tickets={this.props.tickets}
             onSelectTicket={ this.handleSelectTicket.bind(this) }
             selectedTicket={ this.state.selectedTicket }></TicketsView>
-            { /*
-              <TicketsView tickets={this.state.filteredTickets}
-              selectedTicket={this.state.selectedTicket}
-              onFilterChanged={ this.handleFilterChanged.bind(this) }
-              onInsertTicket={ this.handleInsertTicket.bind(this) }
-              onSelectTicket={ this.handleSelectTicket.bind(this) }></TicketsView>
-              this.state.selectedTicket ? ( <TicketView ticket={this.state.selectedTicket}></TicketView> ) : null */ }
+            { this.state.selectedTicket ? (<TicketDetailsView ticket={this.state.selectedTicket}></TicketDetailsView>) : null }
+            <menu.MenuView menu={this.props.menu}></menu.MenuView>
             </div>
         );
     }
@@ -55,58 +47,21 @@ export class ReconciliationView extends React.Component<ReconciliationViewProps,
 
 
 
-/*
-export interface TicketViewProps {
-    ticket: models.TicketModel;
-}
-export class TicketView extends React.Component<TicketViewProps, any> {
-    nameInput: any;
-    render() {
-        return (
-            <div className="ticket">
-              <div className="header">
-                <h3>{ this.props.ticket.name }</h3>
-              </div>
-
-            </div>);
-    }
-}*/
-
-
-
 export interface TicketsViewProps {
     tickets: { [key: string]: models.TicketModel }
     selectedTicket: models.TicketModel;
-    /*
-    onFilterChanged: (filter: string) => void;
-    onInsertTicket: (name: string) => void;*/
     onSelectTicket: (ticket: models.TicketModel) => void;
 }
 export interface TicketsViewState {
     filteredTickets?: { [key: string]: models.TicketModel };
 }
-export class TicketsView extends React.Component<TicketsViewProps, any> {
-    //mixins = [PureRenderMixin]
-    stateStore: any;
+export class TicketsView extends bv.FreezerView<TicketsViewProps, TicketsViewState> {
+    name: string = '  TicketsView';
     constructor(props: TicketsViewProps) {
         super(props);
-        this.stateStore = new Freezer<TicketsViewState>({
-            filteredTickets: this.getFilteredTickets('', props.tickets)
-        });
         this.state = {
-            store: this.stateStore.get()
+            filteredTickets: this.getFilteredTickets('', this.props.tickets)
         };
-    }
-    componentDidMount() {
-        this.stateStore.on('update', () => {
-            this.setState({ store: this.stateStore.get() });
-        });
-    }
-    shouldComponentUpdate(nextProps: TicketsViewProps, nextState: any) {
-        var shouldUpdate = this.props.tickets !== nextProps.tickets
-            || this.props.selectedTicket !== nextProps.selectedTicket
-            || this.state.store !== nextState.store;
-        return shouldUpdate;
     }
     handleFilterChanged(element, e) {
         var tickets = this.props.tickets;
@@ -120,7 +75,7 @@ export class TicketsView extends React.Component<TicketsViewProps, any> {
         }
         var filter = e.target.value;
         var filteredTickets = this.getFilteredTickets(filter, tickets);
-        this.state.store.set('filteredTickets', filteredTickets);
+        this.setState({ filteredTickets: filteredTickets });
     }
     getFilteredTickets(filter: string, tickets: { [key: string]: models.TicketModel }): { [key: string]: models.TicketModel } {
         var normalized = filter.trim().toLowerCase();
@@ -136,8 +91,7 @@ export class TicketsView extends React.Component<TicketsViewProps, any> {
         return filtered;
     }
     render() {
-        console.log('     Render: Tickets List');
-        var tickets = this.state.store.filteredTickets;
+        var tickets = this.state.filteredTickets;
         var nodes = Object.keys(tickets).map((key) => {
             var ticket = tickets[key];
             var isSelected = this.props.selectedTicket === ticket;
@@ -171,16 +125,33 @@ export interface TicketViewProps {
     ticket: models.TicketModel;
     onSelect: (ticket: models.TicketModel) => void;
 }
-export class TicketView extends React.Component<TicketViewProps, any> {
-    shouldComponentUpdate(nextProps: TicketViewProps) {
-        var shouldUpdate = this.props.ticket !== nextProps.ticket || this.props.isSelected !== nextProps.isSelected;
-        return shouldUpdate;
-    }
+export class TicketView extends bv.FreezerView<TicketViewProps, any> {
+    name: string = '    TicketView';
     render() {
         var ticket = this.props.ticket;
         console.log('       Render: Ticket: ' + ticket.name);
         return (
             <li className={ this.props.isSelected ? 'active' : '' } onClick={() => { this.props.onSelect(ticket) } }>{ticket.name}</li>
+        );
+    }
+}
+
+
+
+
+
+export interface TicketDetailsViewProps {
+    ticket: models.TicketModel;
+}
+export class TicketDetailsView extends bv.FreezerView<TicketDetailsViewProps, {}> {
+    name: string = '        TicketDetailsView';
+    render() {
+        var ticket = this.props.ticket;
+        console.log('         Render: TicketDetails: ' + ticket.name);
+        return (
+            <div className="ticket-details">
+              <h3>{ticket.name}</h3>
+            </div>
         );
     }
 }
