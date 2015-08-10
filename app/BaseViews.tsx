@@ -29,17 +29,17 @@ export class FreezerView<P, S> extends React.Component<P, S> {
                 //ignore functions
             }
             else if ((next[key] !== curr[key])) {
-                console.log(this.name + ' DIFF: ' + key + ': ' + next[key]);
+                //console.log(this.name + ' DIFF: ' + key + ': ' + next[key]);
                 equal = false;
             }
         });
         return !equal;
     }
-    shouldComponentUpdate(nextProps: MenuViewProps, nextState: MenuViewState) {
+    shouldComponentUpdate(nextProps: P, nextState: S) {
         var propsDiff = this.isShallowDiff(this.props, nextProps);
         var stateDiff = this.isShallowDiff(this.state, nextState);
         var shouldUpdate = propsDiff || stateDiff;
-        if (shouldUpdate) console.log(this.name + ': UPDATE');
+        //if (shouldUpdate) console.log(this.name + ': UPDATE');
         return shouldUpdate;
     }
 }

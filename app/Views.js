@@ -5,7 +5,8 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-define(["require", "exports", 'react/addons', 'freezer-js', './MenuViews', './ReconciliationViews'], function (require, exports, React, Freezer, menuViews, recViews) {
+define(["require", "exports", 'react/addons', 'freezer-js', './BaseViews', './MenuViews', './ReconciliationViews'], function (require, exports, React, Freezer, bv, menuViews, recViews) {
+    React.initializeTouchEvents(true);
     var NavigationBase = (function (_super) {
         __extends(NavigationBase, _super);
         function NavigationBase(props) {
@@ -26,7 +27,7 @@ define(["require", "exports", 'react/addons', 'freezer-js', './MenuViews', './Re
             return (React.createElement("div", null, "Navigator Base is an abstract class.You must implement your own render()."));
         };
         return NavigationBase;
-    })(React.Component);
+    })(bv.FreezerView);
     exports.NavigationBase = NavigationBase;
     var NavigationView = (function (_super) {
         __extends(NavigationView, _super);
@@ -49,63 +50,69 @@ define(["require", "exports", 'react/addons', 'freezer-js', './MenuViews', './Re
             _super.apply(this, arguments);
         }
         NavigationItem.prototype.render = function () {
+            var _this = this;
             var className = this.state.isSelected ? 'active' : '';
-            return (React.createElement("a", {"className": className, "href": this.props.hash}, this.props.children));
+            return (React.createElement("a", {"className": className, "onClick": function () { _this.props.onSelect(_this.props.hash); }, "href": this.props.hash}, this.props.children));
         };
         return NavigationItem;
     })(NavigationView);
     exports.NavigationItem = NavigationItem;
-    var reconciliationStore = new Freezer({
-        menu: {
-            categories: {
-                '0': {
-                    key: '0',
-                    name: 'Dinner Entrees',
-                    items: {
-                        '0': {
-                            key: '0',
-                            name: '14oz Ribeye',
-                            price: 20
-                        },
-                        '1': {
-                            key: '1',
-                            name: 'Cajun Chicken',
-                            price: 14
-                        },
-                        '2': {
-                            key: '2',
-                            name: 'Chicken Tenders',
-                            price: 10
+    var reconciliationStore = new Freezer(JSON.parse(localStorage.getItem('rec'))
+        || {
+            tickets: {},
+            menu: {
+                categories: {
+                    '0': {
+                        key: '0',
+                        name: 'Dinner Entrees',
+                        items: {
+                            '0': {
+                                key: '0',
+                                name: '14oz Ribeye',
+                                price: 20
+                            },
+                            '1': {
+                                key: '1',
+                                name: 'Cajun Chicken',
+                                price: 14
+                            },
+                            '2': {
+                                key: '2',
+                                name: 'Chicken Tenders',
+                                price: 10
+                            }
                         }
                     }
                 }
             }
-        },
-        tickets: {
-            '0': { key: '0', name: 'Justin' }
-        }
-    }, { live: false });
+        }, { live: false });
     var MainView = (function (_super) {
         __extends(MainView, _super);
         function MainView(props) {
             _super.call(this, props);
             this.state = {
-                reconciliation: reconciliationStore.get()
+                reconciliation: reconciliationStore.get(),
+                isNavOpen: false
             };
         }
         MainView.prototype.componentDidMount = function () {
             var _this = this;
             reconciliationStore.on('update', function () {
                 var reconciliation = reconciliationStore.get();
-                console.log('MainView Store: ' + JSON.stringify(reconciliation));
+                localStorage.setItem('rec', JSON.stringify(reconciliation.toJS()));
                 _this.setState({
                     reconciliation: reconciliation
                 });
             });
         };
+        MainView.prototype.closeNav = function () {
+            this.setState({ isNavOpen: false });
+        };
         MainView.prototype.render = function () {
+            var _this = this;
             var rec = this.state.reconciliation;
-            return (React.createElement("div", null, React.createElement("div", {"className": "sticky-header"}, React.createElement("ul", null, React.createElement("li", null, React.createElement(NavigationItem, {"hash": "#"}, React.createElement("span", {"className": "col-2"}, "RMS"))), React.createElement("li", null, React.createElement(NavigationItem, {"hash": "#reconciliation"}, React.createElement("span", {"className": "col-6"}, "Reconciliation"))), React.createElement("li", null, React.createElement(NavigationItem, {"hash": "#menu"}, React.createElement("span", {"className": "col-5"}, "Menu"))), React.createElement("li", null, React.createElement(NavigationItem, {"hash": "#kitchen"}, React.createElement("span", {"className": "col-5"}, "Kitchen"))))), React.createElement(NavigationView, {"hash": "#"}, React.createElement("h1", null, "Welcome to RMS"), React.createElement("p", null, "There will be a dashboard here later."), React.createElement("p", null, "Use the navigation above to select a location.")), React.createElement(NavigationView, {"hash": "#reconciliation"}, React.createElement(recViews.ReconciliationView, {"tickets": rec.tickets, "menu": rec.menu})), React.createElement(NavigationView, {"hash": "#menu"}, React.createElement(menuViews.MenuView, {"menu": rec.menu})), React.createElement(NavigationView, {"hash": "#kitchen"}, React.createElement("h1", null, "The kitchen!"))));
+            var className = this.state.isNavOpen ? 'open' : '';
+            return (React.createElement("div", null, React.createElement("div", {"className": "sticky-header"}, React.createElement("ul", {"className": className}, React.createElement("li", {"className": "hamburger-icon", "onClick": function () { _this.setState({ isNavOpen: !_this.state.isNavOpen }); }}, React.createElement("span", {"className": "col-2 fa fa-bars"})), React.createElement("li", null, React.createElement(NavigationItem, {"hash": "#", "onSelect": function () { _this.closeNav(); }}, React.createElement("span", {"className": "col-2"}, "RMS"))), React.createElement("li", {"className": "hamburger"}, React.createElement(NavigationItem, {"hash": "#reconciliation", "onSelect": function () { _this.closeNav(); }}, React.createElement("span", {"className": "col-6"}, "Reconciliation"))), React.createElement("li", {"className": "hamburger"}, React.createElement(NavigationItem, {"hash": "#menu", "onSelect": function () { _this.closeNav(); }}, React.createElement("span", {"className": "col-5"}, "Menu"))), React.createElement("li", {"className": "hamburger"}, React.createElement(NavigationItem, {"hash": "#kitchen", "onSelect": function () { _this.closeNav(); }}, React.createElement("span", {"className": "col-5"}, "Kitchen"))))), React.createElement(NavigationView, {"hash": "#"}, React.createElement("h1", null, "Welcome to RMS"), React.createElement("p", null, "There will be a dashboard here later."), React.createElement("p", null, "Use the navigation above to select a location.")), React.createElement(NavigationView, {"hash": "#reconciliation"}, React.createElement(recViews.ReconciliationView, {"tickets": rec.tickets, "menu": rec.menu})), React.createElement(NavigationView, {"hash": "#menu"}, React.createElement(menuViews.MenuEditView, {"menu": rec.menu})), React.createElement(NavigationView, {"hash": "#kitchen"}, React.createElement("h1", null, "The kitchen!"))));
         };
         return MainView;
     })(React.Component);

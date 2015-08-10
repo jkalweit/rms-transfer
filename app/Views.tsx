@@ -6,7 +6,7 @@ import Freezer = require('freezer-js');
 
 import models = require('./Models');
 
-import baseViews = require('./BaseViews');
+import bv = require('./BaseViews');
 import vendorViews = require('./vendorViews');
 import inventoryViews = require('./InventoryViews');
 import shiftViews = require('./shiftViews');
@@ -14,13 +14,17 @@ import kitchenViews = require('./KitchenViews');
 import menuViews = require('./MenuViews');
 import recViews = require('./ReconciliationViews');
 
+React.initializeTouchEvents(true);
 
 export interface NavigatorProps {
     hash: string;
     children?: any;
+    onSelect?: (url: string) => void;
 }
-
-export class NavigationBase extends React.Component<NavigatorProps, any> {
+export interface NavigationState {
+  isSelected?: boolean;
+}
+export class NavigationBase extends bv.FreezerView<NavigatorProps, NavigationState> {
     constructor(props) {
         super(props);
         this.state = { isSelected: this.compareHash() };
@@ -29,7 +33,6 @@ export class NavigationBase extends React.Component<NavigatorProps, any> {
         });
     }
     compareHash(): boolean {
-
         var normalizedHash = (location.hash || '').toLowerCase();
         if (normalizedHash == '') normalizedHash = '#';
 
@@ -47,12 +50,6 @@ export class NavigationView extends NavigationBase {
             zIndex: this.state.isSelected ? 1 : 0,
             opacity: this.state.isSelected ? 1 : 0
         };
-        /*if (!this.state.isSelected) {
-            style = {
-                height: '0',
-                overflow: 'auto'
-            };
-        }*/
 
         return (
             <div className="navigation-view" style={style}>
@@ -62,12 +59,11 @@ export class NavigationView extends NavigationBase {
     }
 }
 
-
 export class NavigationItem extends NavigationView {
     render() {
         var className = this.state.isSelected ? 'active' : '';
         return (
-            <a className={className} href={this.props.hash}>
+            <a className={className} onClick={ () => { this.props.onSelect(this.props.hash); }} href={this.props.hash}>
               { this.props.children }
             </a>
         );
@@ -75,10 +71,9 @@ export class NavigationItem extends NavigationView {
 }
 
 
-
-
-
-var reconciliationStore = new Freezer<models.Reconciliation>({
+var reconciliationStore = new Freezer<models.Reconciliation>(JSON.parse(localStorage.getItem('rec'))
+|| {
+    tickets: {},
     menu: {
         categories: {
           '0': {
@@ -103,43 +98,49 @@ var reconciliationStore = new Freezer<models.Reconciliation>({
             }
           }
         }
-    },
-    tickets: {
-      '0': { key: '0', name: 'Justin' }
     }
-}, { live: false });
+  }, { live: false });
+
+
 
 
 
 export interface MainViewState {
-    reconciliation: models.Reconciliation;
+    reconciliation?: models.Reconciliation;
+    isNavOpen?: boolean;
 }
 export class MainView extends React.Component<{}, MainViewState> {
     constructor(props) {
         super(props);
         this.state = {
-            reconciliation: reconciliationStore.get()
+            reconciliation: reconciliationStore.get(),
+            isNavOpen: false
         };
     }
     componentDidMount() {
         reconciliationStore.on('update', () => {
             var reconciliation = reconciliationStore.get();
-            console.log('MainView Store: ' + JSON.stringify(reconciliation));
+            localStorage.setItem('rec', JSON.stringify(reconciliation.toJS()));
             this.setState({
                 reconciliation: reconciliation
             })
         });
     }
+    closeNav() {
+      this.setState({ isNavOpen: false });
+    }
     render() {
         var rec = this.state.reconciliation;
+        var className = this.state.isNavOpen ? 'open' : '';
         return (
             <div>
             <div className="sticky-header">
-              <ul>
-                <li><NavigationItem hash="#"><span className="col-2">RMS</span></NavigationItem></li>
-                <li><NavigationItem hash="#reconciliation"><span className="col-6">Reconciliation</span></NavigationItem></li>
-                <li><NavigationItem hash="#menu"><span className="col-5">Menu</span></NavigationItem></li>
-                <li><NavigationItem hash="#kitchen"><span className="col-5">Kitchen</span></NavigationItem></li>
+              <ul className={className}>
+                <li className="hamburger-icon" onClick={() => { this.setState({ isNavOpen: !this.state.isNavOpen }) }}><span className="col-2 fa fa-bars"></span></li>
+                <li><NavigationItem hash="#" onSelect={ () => { this.closeNav(); }}><span className="col-2">RMS</span></NavigationItem></li>
+                <li className="hamburger"><NavigationItem hash="#reconciliation" onSelect={ () => { this.closeNav(); }}><span className="col-6">Reconciliation</span></NavigationItem></li>
+                <li className="hamburger"><NavigationItem hash="#menu" onSelect={ () => { this.closeNav(); }}><span className="col-5">Menu</span></NavigationItem></li>
+                <li className="hamburger"><NavigationItem hash="#kitchen" onSelect={ () => { this.closeNav(); }}><span className="col-5">Kitchen</span></NavigationItem></li>
               </ul>
             </div>
             <NavigationView hash="#">
@@ -148,7 +149,7 @@ export class MainView extends React.Component<{}, MainViewState> {
               <p>Use the navigation above to select a location.</p>
             </NavigationView>
             <NavigationView hash="#reconciliation"><recViews.ReconciliationView tickets={rec.tickets} menu={rec.menu}></recViews.ReconciliationView></NavigationView>
-            <NavigationView hash="#menu"><menuViews.MenuView menu={rec.menu}></menuViews.MenuView></NavigationView>
+            <NavigationView hash="#menu"><menuViews.MenuEditView menu={rec.menu}></menuViews.MenuEditView></NavigationView>
             <NavigationView hash="#kitchen"><h1>The kitchen!</h1></NavigationView>
           { /*
             <kitchenViews.KitchenOrdersView></kitchenViews.KitchenOrdersView>

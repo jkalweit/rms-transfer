@@ -4,6 +4,7 @@ interface Freezer_Static {
 interface IFreezer<T> {
   get(): T;
   on(event: string, callback: any): void;
+  toJS(): T;
 }
 
 declare var freezer: Freezer_Static;

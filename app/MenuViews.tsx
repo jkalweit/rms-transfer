@@ -3,7 +3,7 @@
 
 import React = require('react/addons');
 import moment = require('moment');
-
+import Freezer = require('freezer-js');
 import models = require('./Models');
 
 import bv = require('./BaseViews');
@@ -13,9 +13,40 @@ import bv = require('./BaseViews');
 
 
 
+export interface MenuEditViewProps {
+    menu: models.MenuModel;
+}
+export interface MenuEditViewState {
+    selectedCategory?: models.MenuCategoryModel;
+    selectedItem?: models.MenuItemModel;
+}
+export class MenuEditView extends bv.FreezerView<MenuViewProps, MenuEditViewState> {
+    name: string = '  MenuEditView';
+    constructor(props) {
+        super(props);
+        this.state = { selectedCategory: null, selectedItem: null };
+    }
+    render() {
+        console.log(this.name + ': Render');
+        return (
+            <div className="menu-edit">
+              <MenuView menu={this.props.menu} selectedCategory={this.state.selectedCategory} onCategorySelected={(category) => { this.setState({selectedCategory: category}); }}></MenuView>
+              { this.state.selectedCategory ? <MenuCategoryEditView menu={this.props.menu} category={this.state.selectedCategory} onSaved={(category) => { this.setState({selectedCategory: category}); }}></MenuCategoryEditView> : null }
+            </div>
+        );
+    }
+}
+
+
+
+
+
 
 export interface MenuViewProps {
     menu: models.MenuModel;
+    onCategorySelected?: (category: models.MenuCategoryModel) => void;
+    onItemSelected?: (item: models.MenuItemModel) => void;
+    selectedCategory?: models.MenuCategoryModel;
 }
 export interface MenuViewState {
     selectedCategory?: models.MenuCategoryModel;
@@ -27,18 +58,111 @@ export class MenuView extends bv.FreezerView<MenuViewProps, MenuViewState> {
         super(props);
         this.state = { selectedCategory: null }
     }
+    componentWillReceiveProps(nextProps: MenuViewProps) {
+        console.log(nextProps);
+        this.setState({ selectedCategory: nextProps.selectedCategory });
+    }
     render() {
         console.log(this.name + ': Render');
-        var menuItems = {} as {[key: string]: models.MenuItemModel};
-        if(this.state.selectedCategory) menuItems = this.state.selectedCategory.items;
+        var menuItems = {} as { [key: string]: models.MenuItemModel };
+        if (this.state.selectedCategory) menuItems = this.state.selectedCategory.items;
         return (
             <div className="menu">
-              <MenuCategoriesView categories={this.props.menu.categories} selectedCategory={ this.state.selectedCategory } onSelectCategory={ (category: models.MenuCategoryModel) => { this.setState({ selectedCategory: category }); } }></MenuCategoriesView>
-              <MenuItemsView items={menuItems} selectedItem={this.state.selectedItem} onSelectItem={ (item: models.MenuItemModel) => { this.setState({ selectedItem: item}); } }></MenuItemsView>
+              <MenuCategoriesView
+              categories={this.props.menu.categories}
+              selectedCategory={ this.state.selectedCategory }
+              onSelectCategory={ (category: models.MenuCategoryModel) => { this.setState({ selectedCategory: category }); if(this.props.onCategorySelected) this.props.onCategorySelected(category); } }></MenuCategoriesView>
+              <MenuItemsView items={menuItems} selectedItem={this.state.selectedItem} onSelectItem={ (item: models.MenuItemModel) => { this.setState({ selectedItem: item }); if(this.props.onItemSelected) this.props.onItemSelected(item); } }></MenuItemsView>
             </div>
         );
     }
 }
+
+
+
+
+
+
+
+
+
+
+export interface MenuCategoryEditViewProps {
+    category: models.MenuCategoryModel;
+    menu: models.MenuModel;
+    onSaved(newImmutable: models.MenuCategoryModel): void;
+}
+export interface MenuCategoryEditViewState {
+    mutable?:  models.MenuCategoryModel;
+    isDirty?: boolean;
+}
+export class MenuCategoryEditView extends bv.FreezerView<MenuCategoryEditViewProps, MenuCategoryEditViewState> {
+    name: string = '      MenuCategoryView';
+    shouldComponentUpdate(nextProps, nextState) {
+      return super.shouldComponentUpdate(nextProps, nextState) || this.state.isDirty;
+    }
+    constructor(props: MenuCategoryEditViewProps) {
+      super(props);
+      var mutable = props.category.toJS();
+      this.state = {
+        mutable: mutable,
+        isDirty: false
+      };
+    }
+    componentWillReceiveProps(nextProps: MenuCategoryEditViewProps) {
+        if (this.props.category !== nextProps.category) {
+            this.setState({ mutable: nextProps.category.toJS(), isDirty: false });
+        }
+    }
+    cancel() {
+
+    }
+    save() {
+      console.log(this.state.mutable);
+      var immutable = (this.props.menu.categories as models.FreezerMap<models.MenuCategoryModel>).set(this.state.mutable.key, this.state.mutable);
+      console.log(immutable);
+    }
+    remove() {
+
+    }
+    handleChange(fieldName, event) {
+        var mutable = this.state.mutable;
+        if (mutable[fieldName] !== event.target.value) {
+            mutable[fieldName] = event.target.value;
+            this.setState({
+                mutable: mutable,
+                isDirty: true
+            });
+        }
+    }
+    render() {
+        console.log(this.name + ': Render Details: ' + this.props.category.name);
+        var mutable = this.state.mutable;
+        return (
+            <div className="menu-category-details">
+              <h3>Edit Category</h3>
+              <div className="inner">
+                <span className="col-4">Type: </span> <select className="col-4" ref="type" value={mutable.type} onChange={ this.handleChange.bind(this, "type") } >
+                    <option></option>
+                    <option>Food</option>
+                    <option>Alcohol</option>
+                </select>
+                <br />
+                <p><span className="col-4">Name: </span> <input className="col-6" ref="name" value={ mutable.name } onChange={ this.handleChange.bind(this, "name") } /></p>
+                <p><span className="col-4">Note: </span> <input className="col-10" value={ mutable.note } onChange={ this.handleChange.bind(this, "note") } /></p>
+                <bv.SimpleConfirmView
+                onCancel={() => { this.cancel() } }
+                onSave={() => { this.save() } }
+                onRemove={ this.remove() }
+                isDirty={this.state.isDirty}
+                ></bv.SimpleConfirmView>
+              </div>
+            </div>
+        );
+    }
+}
+
+
 
 
 
@@ -51,15 +175,6 @@ export interface MenuCategoriesViewProps {
 }
 export class MenuCategoriesView extends bv.FreezerView<MenuCategoriesViewProps, any> {
     name: string = '    MenuCategoriesView';
-    doTest() {
-        var category: models.MenuCategoryModel = {
-            key: new Date().toISOString(),
-            name: 'Dinner Entrees',
-            items: {}
-        };
-
-        (this.props.categories as any).set(category.key, category);
-    }
     render() {
         console.log(this.name + ': Render');
         var nodes = Object.keys(this.props.categories).map((key) => {
@@ -70,7 +185,6 @@ export class MenuCategoriesView extends bv.FreezerView<MenuCategoriesViewProps, 
         return (
             <div className="menu-categories">
               <h3>Menu Categories</h3>
-              <button onClick={this.doTest.bind(this) }>Do Test</button>
               <ul>
                 { nodes }
               </ul>

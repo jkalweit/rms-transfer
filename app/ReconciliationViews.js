@@ -36,6 +36,7 @@ define(["require", "exports", 'react/addons', './MenuViews', './BaseViews'], fun
             };
         }
         TicketsView.prototype.handleFilterChanged = function (element, e) {
+            var _this = this;
             var tickets = this.props.tickets;
             if (e.keyCode === 13) {
                 var ticket = {
@@ -44,6 +45,9 @@ define(["require", "exports", 'react/addons', './MenuViews', './BaseViews'], fun
                 };
                 e.target.value = '';
                 tickets = this.props.tickets.set(ticket.key, ticket);
+                setTimeout(function () {
+                    _this.props.onSelectTicket(_this.props.tickets[ticket.key]);
+                }, 0);
             }
             var filter = e.target.value;
             var filteredTickets = this.getFilteredTickets(filter, tickets);

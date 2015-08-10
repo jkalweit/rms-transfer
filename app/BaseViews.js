@@ -23,7 +23,6 @@ define(["require", "exports", 'react/addons', './DataStores'], function (require
             this.name = 'FreezerView';
         }
         FreezerView.prototype.isShallowDiff = function (curr, next) {
-            var _this = this;
             var equal = true;
             if (curr === null || next === null || typeof curr !== 'object' || typeof next !== 'object') {
                 return curr !== next;
@@ -32,7 +31,6 @@ define(["require", "exports", 'react/addons', './DataStores'], function (require
                 if (typeof next[key] === 'function') {
                 }
                 else if ((next[key] !== curr[key])) {
-                    console.log(_this.name + ' DIFF: ' + key + ': ' + next[key]);
                     equal = false;
                 }
             });
@@ -42,8 +40,6 @@ define(["require", "exports", 'react/addons', './DataStores'], function (require
             var propsDiff = this.isShallowDiff(this.props, nextProps);
             var stateDiff = this.isShallowDiff(this.state, nextState);
             var shouldUpdate = propsDiff || stateDiff;
-            if (shouldUpdate)
-                console.log(this.name + ': UPDATE');
             return shouldUpdate;
         };
         return FreezerView;

@@ -72,6 +72,10 @@ export class TicketsView extends bv.FreezerView<TicketsViewProps, TicketsViewSta
             };
             e.target.value = '';
             tickets = (this.props.tickets as any).set(ticket.key, ticket);
+            setTimeout(() => {
+                this.props.onSelectTicket(this.props.tickets[ticket.key]);
+              }, 0);
+
         }
         var filter = e.target.value;
         var filteredTickets = this.getFilteredTickets(filter, tickets);

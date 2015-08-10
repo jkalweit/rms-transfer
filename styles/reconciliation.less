@@ -3,6 +3,8 @@
 @import "colors";
 
 .reconciliation {
+  .scroll;
+  .noselect;
 
   position: fixed;
   top: @header-height;
@@ -12,6 +14,7 @@
   background-color: @mdc-yellow-100;
 
   .ticket, .ticket-list, .ticket-details {
+    .scroll;
     .h {
       width: 100%;
       color: #FFFFFF;
@@ -44,6 +47,10 @@
     width: 200px;
     height: 100%;
     float: left;
+
+    @media screen and (max-width: @mobile-width) {
+      width: 100%;
+    }
 
     .name-filter {
       width: 100%;
@@ -87,5 +94,10 @@
     margin: 10px;
     width: 300px;
     min-height: 300px;
+    box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.5);
+
+    @media screen and (max-width: @mobile-width) {
+      width: 100%;
+    }
   }
 }
